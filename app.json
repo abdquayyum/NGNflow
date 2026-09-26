@@ -12,7 +12,8 @@
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
         }
-      }
+      },
+      "bundleIdentifier": "com.olamicreas.ngnflow"
     },
     "android": {
       "adaptiveIcon": {
