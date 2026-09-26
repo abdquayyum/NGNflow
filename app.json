@@ -11,7 +11,8 @@
       "infoPlist": {
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
-        }
+        },
+        "ITSAppUsesNonExemptEncryption": false
       },
       "bundleIdentifier": "com.olamicreas.ngnflow"
     },
@@ -28,7 +29,13 @@
     },
     "plugins": [
       "expo-secure-store",
-      "expo-notifications"
-    ]
+      "expo-notifications",
+      "./withPodfile.js"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "37392892-5e18-40dc-9637-0cbb73d2307d"
+      }
+    }
   }
 }
