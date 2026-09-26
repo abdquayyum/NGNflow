@@ -31,6 +31,11 @@ jobs:
       - name: Setup Expo and EAS CLI
         run: npm install -g eas-cli
 
+      - name: Initialize EAS Project
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas init --account olamicreas --non-interactive
+
       - name: Build for iOS (Local on Runner)
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
