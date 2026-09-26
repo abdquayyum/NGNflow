@@ -28,10 +28,6 @@ jobs:
       - name: Install dependencies
         run: npm ci || npm install
 
-      - name: Patch Expo Modules JSI for Xcode 16
-        run: |
-          find node_modules -name "RuntimeScheduler.h" -path "*/expo-modules-jsi/*" -exec sed -i '' 's/SWIFT_RETURNS_RETAINED //g' {} +
-
       - name: Setup Expo and EAS CLI
         run: npm install -g eas-cli
 

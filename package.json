@@ -30,7 +30,8 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "postinstall": "sed -i '' 's/SWIFT_RETURNS_RETAINED //g' node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h || true"
   },
   "private": true,
   "devDependencies": {
