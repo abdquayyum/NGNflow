@@ -615,7 +615,7 @@ index d43cdd5..d2b02cf 100644
  
    /// Creates a PropNameID from existing `facebook.jsi.PropNameID`.
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift
-index 3d796ee..27605aa 100644
+index 3d796ee..b61202d 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift
 @@ -1,6 +1,6 @@
@@ -857,7 +857,29 @@ index 3d796ee..27605aa 100644
    let context = Unmanaged.passRetained(HostFunctionContext(runtime: runtime, name: name, closure)).toOpaque()
  
    func call(
-@@ -796,13 +795,13 @@ private func createFunctionClosure(
+@@ -774,15 +773,16 @@ private func createFunctionClosure(
+     // synchronous call, so the `nonisolated(unsafe)` capture is sound. This removes a per-call class
+     // allocation + retain/release + dealloc that profiling showed dominating the no-op `@JS` host-call
+     // floor.
+-    nonisolated(unsafe) let thisPtr = thisPtr
+-    nonisolated(unsafe) let argumentsPtr = argumentsPtr
+-    nonisolated(unsafe) let resultPtr = resultPtr
++    let thisPtrAddr = UInt(bitPattern: thisPtr)
++    let argumentsPtrAddr = UInt(bitPattern: argumentsPtr)
++    let resultPtrAddr = UInt(bitPattern: resultPtr)
+ 
+-    // See `withGuaranteedContext` for why neither the context nor the runtime is retained here, and
+-    // why the result is written to the caller's slot instead of being returned.
+     return withGuaranteedContext(context) { (context: HostFunctionContext, runtime) in
+       return JavaScriptActor.assumeIsolated {
+         return forwardingSwiftErrorsToJS(runtime: runtime) {
++          let thisPtr = UnsafePointer<facebook.jsi.Value>(bitPattern: thisPtrAddr)!
++          let argumentsPtr = UnsafePointer<facebook.jsi.Value>(bitPattern: argumentsPtrAddr)!
++          let resultPtr = UnsafeMutablePointer<facebook.jsi.Value>(bitPattern: resultPtrAddr)!
+           let this = UnsafeMutablePointer(mutating: thisPtr).move()
+           let arguments = JavaScriptValuesBuffer(runtime, start: argumentsPtr, count: argumentsCount)
+           let thisValue = JavaScriptValue(runtime, this)
+@@ -796,13 +796,13 @@ private func createFunctionClosure(
      Unmanaged<HostFunctionContext>.fromOpaque(context).release()
    }
  
@@ -873,7 +895,29 @@ index 3d796ee..27605aa 100644
    let context = Unmanaged.passRetained(UnownedThisHostFunctionContext(runtime: runtime, name: name, closure)).toOpaque()
  
    func call(
-@@ -838,7 +837,7 @@ private func createFunctionClosure(
+@@ -817,15 +817,16 @@ private func createFunctionClosure(
+     // handed in as a borrowed `JavaScriptUnownedValue` pointing straight at the C++-owned `this` slot:
+     // it is not moved out and no owning `JavaScriptValue` is allocated, so the closure avoids the
+     // per-call `weak`-runtime form/destroy and heap object that the owning `this` pays.
+-    nonisolated(unsafe) let thisPtr = thisPtr
+-    nonisolated(unsafe) let argumentsPtr = argumentsPtr
+-    nonisolated(unsafe) let resultPtr = resultPtr
++    let thisPtrAddr = UInt(bitPattern: thisPtr)
++    let argumentsPtrAddr = UInt(bitPattern: argumentsPtr)
++    let resultPtrAddr = UInt(bitPattern: resultPtr)
+ 
+-    // See `withGuaranteedContext` for why neither the context nor the runtime is retained here, and
+-    // why the result is written to the caller's slot instead of being returned.
+     return withGuaranteedContext(context) { (context: UnownedThisHostFunctionContext, runtime) in
+       return JavaScriptActor.assumeIsolated {
+         return forwardingSwiftErrorsToJS(runtime: runtime) {
++          let thisPtr = UnsafePointer<facebook.jsi.Value>(bitPattern: thisPtrAddr)!
++          let argumentsPtr = UnsafePointer<facebook.jsi.Value>(bitPattern: argumentsPtrAddr)!
++          let resultPtr = UnsafeMutablePointer<facebook.jsi.Value>(bitPattern: resultPtrAddr)!
+           let arguments = JavaScriptValuesBuffer(runtime, start: argumentsPtr, count: argumentsCount)
+           let thisValue = JavaScriptUnownedValue(runtime.pointee, thisPtr)
+           try context.call(thisValue, consume arguments).writeJSIValue(to: resultPtr)
+@@ -838,7 +839,7 @@ private func createFunctionClosure(
      Unmanaged<UnownedThisHostFunctionContext>.fromOpaque(context).release()
    }
  
