@@ -33,8 +33,9 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Run prebuild
-        run: npx expo prebuild --platform ios --clean
-
-      - name: Resolve SPM Dependencies
-        run: cd ios && xcodebuild -resolvePackageDependencies -workspace NGNflow.xcworkspace -scheme NGNflow
+      - name: Build for iOS (Local on Runner)
+        run: EAS_NO_VCS=1 eas build --platform ios --local --non-interactive
+        
+      - name: Dump Xcode Logs
+        if: failure()
+        run: find /var/folders /tmp /Users -name "*.log" -type f 2>/dev/null -exec tail -n 200 {} +
