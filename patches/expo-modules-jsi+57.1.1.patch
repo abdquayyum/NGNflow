@@ -1,0 +1,343 @@
+diff --git a/node_modules/expo-modules-jsi/apple/Package.swift b/node_modules/expo-modules-jsi/apple/Package.swift
+index 77b0525..45fcb2b 100644
+--- a/node_modules/expo-modules-jsi/apple/Package.swift
++++ b/node_modules/expo-modules-jsi/apple/Package.swift
+@@ -1,4 +1,4 @@
+-// swift-tools-version: 6.2
++// swift-tools-version: 5.9
+ // The swift-tools-version declares the minimum version of Swift required to build this package.
+ 
+ import Foundation
+@@ -45,8 +45,7 @@ let headerSearchPaths = [
+   "\(podsRoot)/RCT-Folly",
+   "\(podsRoot)/fmt/include",
+   "\(podsRoot)/glog/src",
+-  "\(podsRoot)/DoubleConversion",
+-]
++  "\(podsRoot)/DoubleConversion"]
+ 
+ // Path to the generated module map for the `jsi` Clang module. The
+ // `scripts/generate-modulemap.sh` script writes this file at build time so
+@@ -66,14 +65,12 @@ let package = Package(
+   platforms: [
+     .iOS("16.4"),
+     .tvOS("16.4"),
+-    .macOS("13.4"),
+-  ],
++    .macOS("13.4")],
+   products: [
+     .library(
+       name: "ExpoModulesJSI",
+       type: .dynamic,
+-      targets: ["ExpoModulesJSI"],
+-    )
++      targets: ["ExpoModulesJSI"])
+   ],
+   dependencies: [],
+   targets: [
+@@ -105,20 +102,16 @@ let package = Package(
+ 
+           // API Notes
+           "-Xcc", "-iapinotes-modules",
+-          "-Xcc", apiNotesPath,
+-        ]),
++          "-Xcc", apiNotesPath]),
+ 
+-        .unsafeFlags(swiftIncludeFlags),
+-      ],
++        .unsafeFlags(swiftIncludeFlags)],
+       linkerSettings: [
+         // React, ReactCommon, hermes, and JSI symbols are provided by the host
+         // app at final link time. Defer their resolution so the xcframework
+         // builds without those static libs being available here.
+         .unsafeFlags([
+-          "-Xlinker", "-undefined", "-Xlinker", "dynamic_lookup",
+-        ])
+-      ],
+-    ),
++          "-Xlinker", "-undefined", "-Xlinker", "dynamic_lookup"])
++      ]),
+ 
+     // C++ target (internal)
+     .target(
+@@ -130,16 +123,13 @@ let package = Package(
+         // code include them by basename (e.g. `#include "NativeState.h"`), which also
+         // matches how external consumers import them via `<ExpoModulesJSI/NativeState.h>`.
+         .headerSearchPath("include/Public"),
+-        .unsafeFlags(cxxIncludeFlags),
+-      ],
+-    ),
++        .unsafeFlags(cxxIncludeFlags)]),
+ 
+     // Tests
+     .testTarget(
+       name: "Tests",
+       dependencies: testFrameworks.dependencies,
+-      path: "Tests",
+-    ),
++      path: "Tests"),
+ 
+     // Benchmarks are opt-in: their suites are gated on the `EXPO_BENCHMARK` environment
+     // variable, so regular test runs build them but skip every suite. Run `pnpm benchmark`
+@@ -147,10 +137,8 @@ let package = Package(
+     .testTarget(
+       name: "Benchmarks",
+       dependencies: testFrameworks.dependencies,
+-      path: "Benchmarks",
+-    ),
+-  ] + testFrameworks.binaryTargets,
+-  swiftLanguageModes: [.v6],
++      path: "Benchmarks")] + testFrameworks.binaryTargets,
++  swiftLanguageVersions: [.v5],
+   cxxLanguageStandard: .cxx20
+ )
+ 
+diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/Info.plist b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/Info.plist
+new file mode 100644
+index 0000000..9f3a711
+--- /dev/null
++++ b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/Info.plist
+@@ -0,0 +1,107 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
++<plist version="1.0">
++<dict>
++  <key>AvailableLibraries</key>
++  <array>
++    <dict>
++      <key>BinaryPath</key>
++      <string>ExpoModulesJSI.framework/ExpoModulesJSI</string>
++      <key>LibraryIdentifier</key>
++      <string>ios-arm64</string>
++      <key>LibraryPath</key>
++      <string>ExpoModulesJSI.framework</string>
++      <key>SupportedArchitectures</key>
++      <array>
++        <string>arm64</string>
++      </array>
++      <key>SupportedPlatform</key>
++      <string>ios</string>
++    </dict>
++    <dict>
++      <key>BinaryPath</key>
++      <string>ExpoModulesJSI.framework/ExpoModulesJSI</string>
++      <key>LibraryIdentifier</key>
++      <string>ios-arm64_x86_64-maccatalyst</string>
++      <key>LibraryPath</key>
++      <string>ExpoModulesJSI.framework</string>
++      <key>SupportedArchitectures</key>
++      <array>
++        <string>arm64</string>
++        <string>x86_64</string>
++      </array>
++      <key>SupportedPlatform</key>
++      <string>ios</string>
++      <key>SupportedPlatformVariant</key>
++      <string>maccatalyst</string>
++    </dict>
++    <dict>
++      <key>BinaryPath</key>
++      <string>ExpoModulesJSI.framework/ExpoModulesJSI</string>
++      <key>LibraryIdentifier</key>
++      <string>ios-arm64_x86_64-simulator</string>
++      <key>LibraryPath</key>
++      <string>ExpoModulesJSI.framework</string>
++      <key>SupportedArchitectures</key>
++      <array>
++        <string>arm64</string>
++        <string>x86_64</string>
++      </array>
++      <key>SupportedPlatform</key>
++      <string>ios</string>
++      <key>SupportedPlatformVariant</key>
++      <string>simulator</string>
++    </dict>
++    <dict>
++      <key>BinaryPath</key>
++      <string>ExpoModulesJSI.framework/ExpoModulesJSI</string>
++      <key>LibraryIdentifier</key>
++      <string>macos-arm64_x86_64</string>
++      <key>LibraryPath</key>
++      <string>ExpoModulesJSI.framework</string>
++      <key>SupportedArchitectures</key>
++      <array>
++        <string>arm64</string>
++        <string>x86_64</string>
++      </array>
++      <key>SupportedPlatform</key>
++      <string>macos</string>
++    </dict>
++    <dict>
++      <key>BinaryPath</key>
++      <string>ExpoModulesJSI.framework/ExpoModulesJSI</string>
++      <key>LibraryIdentifier</key>
++      <string>tvos-arm64</string>
++      <key>LibraryPath</key>
++      <string>ExpoModulesJSI.framework</string>
++      <key>SupportedArchitectures</key>
++      <array>
++        <string>arm64</string>
++      </array>
++      <key>SupportedPlatform</key>
++      <string>tvos</string>
++    </dict>
++    <dict>
++      <key>BinaryPath</key>
++      <string>ExpoModulesJSI.framework/ExpoModulesJSI</string>
++      <key>LibraryIdentifier</key>
++      <string>tvos-arm64_x86_64-simulator</string>
++      <key>LibraryPath</key>
++      <string>ExpoModulesJSI.framework</string>
++      <key>SupportedArchitectures</key>
++      <array>
++        <string>arm64</string>
++        <string>x86_64</string>
++      </array>
++      <key>SupportedPlatform</key>
++      <string>tvos</string>
++      <key>SupportedPlatformVariant</key>
++      <string>simulator</string>
++    </dict>
++  </array>
++  <key>CFBundlePackageType</key>
++  <string>XFWK</string>
++  <key>XCFrameworkFormatVersion</key>
++  <string>1.0</string>
++</dict>
++</plist>
+diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64/.build-hash b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64/.build-hash
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64/ExpoModulesJSI.framework/ExpoModulesJSI b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64/ExpoModulesJSI.framework/ExpoModulesJSI
+new file mode 100755
+index 0000000..0f63213
+Binary files /dev/null and b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64/ExpoModulesJSI.framework/ExpoModulesJSI differ
+diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64_x86_64-maccatalyst/.build-hash b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64_x86_64-maccatalyst/.build-hash
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64_x86_64-maccatalyst/ExpoModulesJSI.framework/ExpoModulesJSI b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64_x86_64-maccatalyst/ExpoModulesJSI.framework/ExpoModulesJSI
+new file mode 100755
+index 0000000..0f63213
+Binary files /dev/null and b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64_x86_64-maccatalyst/ExpoModulesJSI.framework/ExpoModulesJSI differ
+diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64_x86_64-simulator/.build-hash b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64_x86_64-simulator/.build-hash
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64_x86_64-simulator/ExpoModulesJSI.framework/ExpoModulesJSI b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64_x86_64-simulator/ExpoModulesJSI.framework/ExpoModulesJSI
+new file mode 100755
+index 0000000..0f63213
+Binary files /dev/null and b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64_x86_64-simulator/ExpoModulesJSI.framework/ExpoModulesJSI differ
+diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/macos-arm64_x86_64/.build-hash b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/macos-arm64_x86_64/.build-hash
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/macos-arm64_x86_64/ExpoModulesJSI.framework/ExpoModulesJSI b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/macos-arm64_x86_64/ExpoModulesJSI.framework/ExpoModulesJSI
+new file mode 100755
+index 0000000..0f63213
+Binary files /dev/null and b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/macos-arm64_x86_64/ExpoModulesJSI.framework/ExpoModulesJSI differ
+diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/tvos-arm64/.build-hash b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/tvos-arm64/.build-hash
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/tvos-arm64/ExpoModulesJSI.framework/ExpoModulesJSI b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/tvos-arm64/ExpoModulesJSI.framework/ExpoModulesJSI
+new file mode 100755
+index 0000000..0f63213
+Binary files /dev/null and b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/tvos-arm64/ExpoModulesJSI.framework/ExpoModulesJSI differ
+diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/tvos-arm64_x86_64-simulator/.build-hash b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/tvos-arm64_x86_64-simulator/.build-hash
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/tvos-arm64_x86_64-simulator/ExpoModulesJSI.framework/ExpoModulesJSI b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/tvos-arm64_x86_64-simulator/ExpoModulesJSI.framework/ExpoModulesJSI
+new file mode 100755
+index 0000000..0f63213
+Binary files /dev/null and b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/tvos-arm64_x86_64-simulator/ExpoModulesJSI.framework/ExpoModulesJSI differ
+diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/CppError.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/CppError.h
+index fef54a0..5e2a7cd 100644
+--- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/CppError.h
++++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/CppError.h
+@@ -25,7 +25,7 @@ namespace jsi = facebook::jsi;
+ // Marked unchecked Sendable because instances live in thread-local storage and
+ // ownership is transferred by move — they are never shared across threads.
+ // `jsi::JSError` itself is not Sendable, so Swift cannot verify this automatically.
+-class SWIFT_UNCHECKED_SENDABLE CppError {
++class CppError {
+ public:
+   /**
+    Creates a CppError from a `jsi::JSError`.
+diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostFunctionClosure.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostFunctionClosure.h
+index 8d5b594..7106682 100644
+--- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostFunctionClosure.h
++++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostFunctionClosure.h
+@@ -35,6 +35,6 @@ public:
+ private:
+   Closure *_Nonnull _closure;
+ 
+-} SWIFT_IMMORTAL_REFERENCE; // class HostFunctionClosure
++} ; // class HostFunctionClosure
+ 
+ } // namespace expo
+diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostObjectCallbacks.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostObjectCallbacks.h
+index b8b80bb..c9a479d 100644
+--- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostObjectCallbacks.h
++++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostObjectCallbacks.h
+@@ -68,7 +68,7 @@ private:
+   PropertyNamesGetter *_Nonnull _propertyNamesGetter;
+   Deallocator *_Nonnull _deallocator;
+ 
+-} SWIFT_NONCOPYABLE; // class HostObjectCallbacks
++} ; // class HostObjectCallbacks
+ 
+ } // namespace expo
+ 
+diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RetainedSwiftPointer.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RetainedSwiftPointer.h
+index 39611db..51a7733 100644
+--- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RetainedSwiftPointer.h
++++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RetainedSwiftPointer.h
+@@ -22,6 +22,6 @@ protected:
+   Context _context;
+   Deallocator *_Nonnull _deallocator;
+ 
+-} SWIFT_IMMORTAL_REFERENCE; // class RetainedSwiftPointer
++} ; // class RetainedSwiftPointer
+ 
+ } // namespace expo
+diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h
+index 6115e87..585a974 100644
+--- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h
++++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h
+@@ -50,7 +50,7 @@ public:
+    `scheduleTask` dispatches through `fn`, which the host implements against
+    the real react::RuntimeScheduler.
+    */
+-  SWIFT_RETURNS_RETAINED RuntimeScheduler(void *scheduler, ScheduleFn fn) noexcept
++  RuntimeScheduler(void *scheduler, ScheduleFn fn) noexcept
+       : nativeScheduler(scheduler), scheduleFn(fn) {}
+ 
+   /**
+@@ -58,7 +58,7 @@ public:
+    caller's thread — intended for standalone runtimes (e.g. tests) that have
+    no React scheduler.
+    */
+-  SWIFT_RETURNS_RETAINED RuntimeScheduler() {}
++  RuntimeScheduler() {}
+ 
+   RuntimeScheduler(const RuntimeScheduler &) = delete;
+ 
+@@ -87,7 +87,7 @@ public:
+       delete this;
+     }
+   }
+-} SWIFT_SHARED_REFERENCE(retainRuntimeScheduler, releaseRuntimeScheduler);
++} ;
+ 
+ } // namespace expo
+ 
+diff --git a/node_modules/expo-modules-jsi/apple/scripts/build-xcframework.sh b/node_modules/expo-modules-jsi/apple/scripts/build-xcframework.sh
+index 4c50653..18886d6 100755
+--- a/node_modules/expo-modules-jsi/apple/scripts/build-xcframework.sh
++++ b/node_modules/expo-modules-jsi/apple/scripts/build-xcframework.sh
+@@ -225,7 +225,7 @@ build_slice() {
+     -destination "generic/platform=${destination}" \
+     -derivedDataPath "$DERIVED_DATA_PATH" \
+     -configuration "$CONFIGURATION" \
+-    -quiet \
++    \
+     -disableAutomaticPackageResolution \
+     -skipPackagePluginValidation \
+     -skipMacroValidation \

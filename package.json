@@ -8,7 +8,7 @@
     "@react-navigation/native": "^7.3.18",
     "@react-navigation/native-stack": "^7.18.10",
     "axios": "^1.20.0",
-    "expo": "~57.0.25",
+    "expo": "^57.0.25",
     "expo-clipboard": "~57.0.2",
     "expo-device": "~57.0.2",
     "expo-notifications": "~57.0.21",
@@ -32,11 +32,12 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "postinstall": "",
+    "postinstall": "patch-package",
     "eas-build-pre-xcodebuild": "sed -i '' -E 's|path: \"[^\"]*node_modules/react-native\"|path: \"../../../../node_modules/react-native\"|g' ios/build/generated/ios/Package.swift || true"
   },
   "private": true,
   "devDependencies": {
-    "babel-preset-expo": "^57.0.10"
+    "babel-preset-expo": "^57.0.10",
+    "patch-package": "^8.0.1"
   }
 }
