@@ -29,8 +29,7 @@
     },
     "plugins": [
       "expo-secure-store",
-      "expo-notifications",
-      "./withPodfile.js"
+      "expo-notifications"
     ],
     "extra": {
       "eas": {
