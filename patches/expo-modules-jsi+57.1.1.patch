@@ -66,7 +66,7 @@ index fef54a0..4c9c000 100644
 -} // namespace expo
 +} // namespace expo_jsi
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostFunctionClosure.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostFunctionClosure.h
-index 8d5b594..695c4eb 100644
+index 8d5b594..6289496 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostFunctionClosure.h
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostFunctionClosure.h
 @@ -5,7 +5,7 @@
@@ -78,6 +78,15 @@ index 8d5b594..695c4eb 100644
  
  /**
   Holds a pointer to a closure in Swift that provides host function's implementation.
+@@ -19,7 +19,7 @@ public:
+   // through the return value spares the caller a thread-local read on every successful call.
+   using Closure = bool(Context context, const facebook::jsi::Value *_Nonnull thisValue, const facebook::jsi::Value *_Nonnull args, size_t count, facebook::jsi::Value *_Nonnull result);
+ 
+-  explicit HostFunctionClosure(Context context, Closure closure, Deallocator deallocator) : RetainedSwiftPointer(context, deallocator), _closure(closure) {};
++  SWIFT_RETURNS_RETAINED explicit HostFunctionClosure(Context context, Closure closure, Deallocator deallocator) : RetainedSwiftPointer(context, deallocator), _closure(closure) {};
+ 
+   virtual ~HostFunctionClosure() {
+     _deallocator(_context);
 @@ -37,4 +37,4 @@ private:
  
  } SWIFT_IMMORTAL_REFERENCE; // class HostFunctionClosure
@@ -343,37 +352,24 @@ index 39611db..57b76bd 100644
 -} // namespace expo
 +} // namespace expo_jsi
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h
-index 6115e87..9a7842c 100644
+index 6115e87..d664b34 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h
-@@ -5,7 +5,7 @@
+@@ -5,8 +5,12 @@
  #include <atomic>
  #include <swift/bridging>
  
 -namespace expo {
-+namespace expo_jsi {
  
++namespace expo_jsi { class RuntimeScheduler; }
++inline void retainRuntimeScheduler(expo_jsi::RuntimeScheduler *scheduler);
++inline void releaseRuntimeScheduler(expo_jsi::RuntimeScheduler *scheduler);
++
++namespace expo_jsi {
  /**
   Wrapper around React Native's RuntimeScheduler. The native scheduler reference
-@@ -50,7 +50,7 @@ public:
-    `scheduleTask` dispatches through `fn`, which the host implements against
-    the real react::RuntimeScheduler.
-    */
--  SWIFT_RETURNS_RETAINED RuntimeScheduler(void *scheduler, ScheduleFn fn) noexcept
-+  RuntimeScheduler(void *scheduler, ScheduleFn fn) noexcept
-       : nativeScheduler(scheduler), scheduleFn(fn) {}
- 
-   /**
-@@ -58,7 +58,7 @@ public:
-    caller's thread — intended for standalone runtimes (e.g. tests) that have
-    no React scheduler.
-    */
--  SWIFT_RETURNS_RETAINED RuntimeScheduler() {}
-+  RuntimeScheduler() {}
- 
-   RuntimeScheduler(const RuntimeScheduler &) = delete;
- 
-@@ -89,15 +89,15 @@ public:
+  and dispatch trampoline are supplied by the host (e.g. ExpoReactNativeFactory)
+@@ -89,15 +93,15 @@ public:
    }
  } SWIFT_SHARED_REFERENCE(retainRuntimeScheduler, releaseRuntimeScheduler);
  
@@ -566,7 +562,7 @@ index d43cdd5..d2b02cf 100644
  
    /// Creates a PropNameID from existing `facebook.jsi.PropNameID`.
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift
-index 3d796ee..c17c24e 100644
+index 3d796ee..5ec029f 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift
 @@ -1,6 +1,6 @@
@@ -672,7 +668,7 @@ index 3d796ee..c17c24e 100644
        let context = Unmanaged<HostObjectContext>.fromOpaque(context).takeUnretainedValue()
        // `IRuntime` is an immortal reference, so reading it through the guaranteed wrapper
        // reference costs no reference counting here either.
-@@ -233,7 +233,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
+@@ -233,13 +233,13 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
        let propertyNames: [String] = JavaScriptActor.assumeIsolated {
          return context.getPropertyNames()
        }
@@ -681,6 +677,13 @@ index 3d796ee..c17c24e 100644
  
        vector.reserve(propertyNames.count)
  
+       for propertyName in propertyNames {
+         let propNameId = facebook.jsi.PropNameID.forUtf8(iRuntime, std.string(propertyName))
+-        vector.push_back(consuming: propNameId)
++        vector.push_back(propNameId)
+       }
+       return vector
+     }
 @@ -257,9 +257,9 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
        (@convention(c) (UnsafeMutableRawPointer, UnsafePointer<CChar>, UnsafeMutableRawPointer) -> Bool)? = setter
      // Pass a null setter to C++ when the Swift setter is nil so that JS assignment
