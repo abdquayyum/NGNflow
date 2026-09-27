@@ -31,7 +31,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "postinstall": "sed -i '' 's/SWIFT_RETURNS_RETAINED //g' node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h || true"
+    "postinstall": "sed -i '' 's/SWIFT_RETURNS_RETAINED //g' node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h || true && sed -i '' 's/raise \"Please upgrade XCode\"/# raise \"Please upgrade XCode\"/g' node_modules/react-native/scripts/cocoapods/utils.rb || true"
   },
   "private": true,
   "devDependencies": {
