@@ -1,346 +1,410 @@
-diff --git a/node_modules/expo-modules-jsi/apple/Package.swift b/node_modules/expo-modules-jsi/apple/Package.swift
-index 77b0525..45fcb2b 100644
---- a/node_modules/expo-modules-jsi/apple/Package.swift
-+++ b/node_modules/expo-modules-jsi/apple/Package.swift
-@@ -1,4 +1,4 @@
--// swift-tools-version: 6.2
-+// swift-tools-version: 5.9
- // The swift-tools-version declares the minimum version of Swift required to build this package.
+diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/JSIUtils.cpp b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/JSIUtils.cpp
+index 84681df..d45e1f2 100644
+--- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/JSIUtils.cpp
++++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/JSIUtils.cpp
+@@ -2,7 +2,7 @@
  
- import Foundation
-@@ -45,8 +45,7 @@ let headerSearchPaths = [
-   "\(podsRoot)/RCT-Folly",
-   "\(podsRoot)/fmt/include",
-   "\(podsRoot)/glog/src",
--  "\(podsRoot)/DoubleConversion",
--]
-+  "\(podsRoot)/DoubleConversion"]
+ #include <hermes/hermes.h>
  
- // Path to the generated module map for the `jsi` Clang module. The
- // `scripts/generate-modulemap.sh` script writes this file at build time so
-@@ -66,14 +65,12 @@ let package = Package(
-   platforms: [
-     .iOS("16.4"),
-     .tvOS("16.4"),
--    .macOS("13.4"),
--  ],
-+    .macOS("13.4")],
-   products: [
-     .library(
-       name: "ExpoModulesJSI",
-       type: .dynamic,
--      targets: ["ExpoModulesJSI"],
--    )
-+      targets: ["ExpoModulesJSI"])
-   ],
-   dependencies: [],
-   targets: [
-@@ -105,20 +102,16 @@ let package = Package(
+-namespace expo {
++namespace expo_jsi {
  
-           // API Notes
-           "-Xcc", "-iapinotes-modules",
--          "-Xcc", apiNotesPath,
--        ]),
-+          "-Xcc", apiNotesPath]),
+ jsi::Runtime* createHermesRuntime() {
+   std::unique_ptr<facebook::hermes::HermesRuntime> runtimePtr = facebook::hermes::makeHermesRuntime();
+@@ -24,4 +24,4 @@ jsi::Runtime* createHermesRuntime() {
+   return runtime;
+ }
  
--        .unsafeFlags(swiftIncludeFlags),
--      ],
-+        .unsafeFlags(swiftIncludeFlags)],
-       linkerSettings: [
-         // React, ReactCommon, hermes, and JSI symbols are provided by the host
-         // app at final link time. Defer their resolution so the xcframework
-         // builds without those static libs being available here.
-         .unsafeFlags([
--          "-Xlinker", "-undefined", "-Xlinker", "dynamic_lookup",
--        ])
--      ],
--    ),
-+          "-Xlinker", "-undefined", "-Xlinker", "dynamic_lookup"])
-+      ]),
+-} // namespace expo
++} // namespace expo_jsi
+diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/TypedArray.cpp b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/TypedArray.cpp
+index 1efa258..15e10f7 100644
+--- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/TypedArray.cpp
++++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/TypedArray.cpp
+@@ -3,7 +3,7 @@
+ #include <unordered_map>
+ #include "TypedArray.h"
  
-     // C++ target (internal)
-     .target(
-@@ -130,16 +123,13 @@ let package = Package(
-         // code include them by basename (e.g. `#include "NativeState.h"`), which also
-         // matches how external consumers import them via `<ExpoModulesJSI/NativeState.h>`.
-         .headerSearchPath("include/Public"),
--        .unsafeFlags(cxxIncludeFlags),
--      ],
--    ),
-+        .unsafeFlags(cxxIncludeFlags)]),
+-namespace expo {
++namespace expo_jsi {
  
-     // Tests
-     .testTarget(
-       name: "Tests",
-       dependencies: testFrameworks.dependencies,
--      path: "Tests",
--    ),
-+      path: "Tests"),
+ std::unordered_map<std::string, TypedArrayKind> nameToKindMap = {
+     {"Int8Array", TypedArrayKind::Int8Array},
+@@ -51,4 +51,4 @@ bool isTypedArray(jsi::IRuntime &runtime, const jsi::Object &jsObj) {
+   return isViewResult.getBool();
+ }
  
-     // Benchmarks are opt-in: their suites are gated on the `EXPO_BENCHMARK` environment
-     // variable, so regular test runs build them but skip every suite. Run `pnpm benchmark`
-@@ -147,10 +137,8 @@ let package = Package(
-     .testTarget(
-       name: "Benchmarks",
-       dependencies: testFrameworks.dependencies,
--      path: "Benchmarks",
--    ),
--  ] + testFrameworks.binaryTargets,
--  swiftLanguageModes: [.v6],
-+      path: "Benchmarks")] + testFrameworks.binaryTargets,
-+  swiftLanguageVersions: [.v5],
-   cxxLanguageStandard: .cxx20
- )
- 
-diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/Info.plist b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/Info.plist
-new file mode 100644
-index 0000000..9f3a711
---- /dev/null
-+++ b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/Info.plist
-@@ -0,0 +1,107 @@
-+<?xml version="1.0" encoding="UTF-8"?>
-+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-+<plist version="1.0">
-+<dict>
-+  <key>AvailableLibraries</key>
-+  <array>
-+    <dict>
-+      <key>BinaryPath</key>
-+      <string>ExpoModulesJSI.framework/ExpoModulesJSI</string>
-+      <key>LibraryIdentifier</key>
-+      <string>ios-arm64</string>
-+      <key>LibraryPath</key>
-+      <string>ExpoModulesJSI.framework</string>
-+      <key>SupportedArchitectures</key>
-+      <array>
-+        <string>arm64</string>
-+      </array>
-+      <key>SupportedPlatform</key>
-+      <string>ios</string>
-+    </dict>
-+    <dict>
-+      <key>BinaryPath</key>
-+      <string>ExpoModulesJSI.framework/ExpoModulesJSI</string>
-+      <key>LibraryIdentifier</key>
-+      <string>ios-arm64_x86_64-maccatalyst</string>
-+      <key>LibraryPath</key>
-+      <string>ExpoModulesJSI.framework</string>
-+      <key>SupportedArchitectures</key>
-+      <array>
-+        <string>arm64</string>
-+        <string>x86_64</string>
-+      </array>
-+      <key>SupportedPlatform</key>
-+      <string>ios</string>
-+      <key>SupportedPlatformVariant</key>
-+      <string>maccatalyst</string>
-+    </dict>
-+    <dict>
-+      <key>BinaryPath</key>
-+      <string>ExpoModulesJSI.framework/ExpoModulesJSI</string>
-+      <key>LibraryIdentifier</key>
-+      <string>ios-arm64_x86_64-simulator</string>
-+      <key>LibraryPath</key>
-+      <string>ExpoModulesJSI.framework</string>
-+      <key>SupportedArchitectures</key>
-+      <array>
-+        <string>arm64</string>
-+        <string>x86_64</string>
-+      </array>
-+      <key>SupportedPlatform</key>
-+      <string>ios</string>
-+      <key>SupportedPlatformVariant</key>
-+      <string>simulator</string>
-+    </dict>
-+    <dict>
-+      <key>BinaryPath</key>
-+      <string>ExpoModulesJSI.framework/ExpoModulesJSI</string>
-+      <key>LibraryIdentifier</key>
-+      <string>macos-arm64_x86_64</string>
-+      <key>LibraryPath</key>
-+      <string>ExpoModulesJSI.framework</string>
-+      <key>SupportedArchitectures</key>
-+      <array>
-+        <string>arm64</string>
-+        <string>x86_64</string>
-+      </array>
-+      <key>SupportedPlatform</key>
-+      <string>macos</string>
-+    </dict>
-+    <dict>
-+      <key>BinaryPath</key>
-+      <string>ExpoModulesJSI.framework/ExpoModulesJSI</string>
-+      <key>LibraryIdentifier</key>
-+      <string>tvos-arm64</string>
-+      <key>LibraryPath</key>
-+      <string>ExpoModulesJSI.framework</string>
-+      <key>SupportedArchitectures</key>
-+      <array>
-+        <string>arm64</string>
-+      </array>
-+      <key>SupportedPlatform</key>
-+      <string>tvos</string>
-+    </dict>
-+    <dict>
-+      <key>BinaryPath</key>
-+      <string>ExpoModulesJSI.framework/ExpoModulesJSI</string>
-+      <key>LibraryIdentifier</key>
-+      <string>tvos-arm64_x86_64-simulator</string>
-+      <key>LibraryPath</key>
-+      <string>ExpoModulesJSI.framework</string>
-+      <key>SupportedArchitectures</key>
-+      <array>
-+        <string>arm64</string>
-+        <string>x86_64</string>
-+      </array>
-+      <key>SupportedPlatform</key>
-+      <string>tvos</string>
-+      <key>SupportedPlatformVariant</key>
-+      <string>simulator</string>
-+    </dict>
-+  </array>
-+  <key>CFBundlePackageType</key>
-+  <string>XFWK</string>
-+  <key>XCFrameworkFormatVersion</key>
-+  <string>1.0</string>
-+</dict>
-+</plist>
-diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64/.build-hash b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64/.build-hash
-new file mode 100644
-index 0000000..e69de29
-diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64/ExpoModulesJSI.framework/ExpoModulesJSI b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64/ExpoModulesJSI.framework/ExpoModulesJSI
-new file mode 100755
-index 0000000..0f63213
-Binary files /dev/null and b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64/ExpoModulesJSI.framework/ExpoModulesJSI differ
-diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64_x86_64-maccatalyst/.build-hash b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64_x86_64-maccatalyst/.build-hash
-new file mode 100644
-index 0000000..e69de29
-diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64_x86_64-maccatalyst/ExpoModulesJSI.framework/ExpoModulesJSI b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64_x86_64-maccatalyst/ExpoModulesJSI.framework/ExpoModulesJSI
-new file mode 100755
-index 0000000..0f63213
-Binary files /dev/null and b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64_x86_64-maccatalyst/ExpoModulesJSI.framework/ExpoModulesJSI differ
-diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64_x86_64-simulator/.build-hash b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64_x86_64-simulator/.build-hash
-new file mode 100644
-index 0000000..e69de29
-diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64_x86_64-simulator/ExpoModulesJSI.framework/ExpoModulesJSI b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64_x86_64-simulator/ExpoModulesJSI.framework/ExpoModulesJSI
-new file mode 100755
-index 0000000..0f63213
-Binary files /dev/null and b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/ios-arm64_x86_64-simulator/ExpoModulesJSI.framework/ExpoModulesJSI differ
-diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/macos-arm64_x86_64/.build-hash b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/macos-arm64_x86_64/.build-hash
-new file mode 100644
-index 0000000..e69de29
-diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/macos-arm64_x86_64/ExpoModulesJSI.framework/ExpoModulesJSI b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/macos-arm64_x86_64/ExpoModulesJSI.framework/ExpoModulesJSI
-new file mode 100755
-index 0000000..0f63213
-Binary files /dev/null and b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/macos-arm64_x86_64/ExpoModulesJSI.framework/ExpoModulesJSI differ
-diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/tvos-arm64/.build-hash b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/tvos-arm64/.build-hash
-new file mode 100644
-index 0000000..e69de29
-diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/tvos-arm64/ExpoModulesJSI.framework/ExpoModulesJSI b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/tvos-arm64/ExpoModulesJSI.framework/ExpoModulesJSI
-new file mode 100755
-index 0000000..0f63213
-Binary files /dev/null and b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/tvos-arm64/ExpoModulesJSI.framework/ExpoModulesJSI differ
-diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/tvos-arm64_x86_64-simulator/.build-hash b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/tvos-arm64_x86_64-simulator/.build-hash
-new file mode 100644
-index 0000000..e69de29
-diff --git a/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/tvos-arm64_x86_64-simulator/ExpoModulesJSI.framework/ExpoModulesJSI b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/tvos-arm64_x86_64-simulator/ExpoModulesJSI.framework/ExpoModulesJSI
-new file mode 100755
-index 0000000..0f63213
-Binary files /dev/null and b/node_modules/expo-modules-jsi/apple/Products/ExpoModulesJSI.xcframework/tvos-arm64_x86_64-simulator/ExpoModulesJSI.framework/ExpoModulesJSI differ
+-} // namespace expo
++} // namespace expo_jsi
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/CppError.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/CppError.h
-index fef54a0..5e2a7cd 100644
+index fef54a0..4c9c000 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/CppError.h
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/CppError.h
-@@ -25,7 +25,7 @@ namespace jsi = facebook::jsi;
- // Marked unchecked Sendable because instances live in thread-local storage and
- // ownership is transferred by move — they are never shared across threads.
- // `jsi::JSError` itself is not Sendable, so Swift cannot verify this automatically.
--class SWIFT_UNCHECKED_SENDABLE CppError {
-+class CppError {
- public:
-   /**
-    Creates a CppError from a `jsi::JSError`.
+@@ -6,7 +6,7 @@
+ 
+ #include "IRuntimeCompat.h"
+ 
+-namespace expo {
++namespace expo_jsi {
+ 
+ namespace jsi = facebook::jsi;
+ 
+@@ -137,4 +137,4 @@ private:
+ 
+ }; // class CppError
+ 
+-} // namespace expo
++} // namespace expo_jsi
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostFunctionClosure.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostFunctionClosure.h
-index 8d5b594..7106682 100644
+index 8d5b594..695c4eb 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostFunctionClosure.h
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostFunctionClosure.h
-@@ -35,6 +35,6 @@ public:
- private:
-   Closure *_Nonnull _closure;
+@@ -5,7 +5,7 @@
  
--} SWIFT_IMMORTAL_REFERENCE; // class HostFunctionClosure
-+} ; // class HostFunctionClosure
+ #include "RetainedSwiftPointer.h"
  
- } // namespace expo
+-namespace expo {
++namespace expo_jsi {
+ 
+ /**
+  Holds a pointer to a closure in Swift that provides host function's implementation.
+@@ -37,4 +37,4 @@ private:
+ 
+ } SWIFT_IMMORTAL_REFERENCE; // class HostFunctionClosure
+ 
+-} // namespace expo
++} // namespace expo_jsi
+diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostObject.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostObject.h
+index 70dfe21..a5d65e4 100644
+--- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostObject.h
++++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostObject.h
+@@ -11,7 +11,7 @@
+ 
+ namespace jsi = facebook::jsi;
+ 
+-namespace expo {
++namespace expo_jsi {
+ 
+ class JSI_EXPORT HostObject : public jsi::HostObject {
+ public:
+@@ -59,6 +59,6 @@ private:
+ 
+ }; // class HostObject
+ 
+-} // namespace expo
++} // namespace expo_jsi
+ 
+ #endif // __cplusplus
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostObjectCallbacks.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostObjectCallbacks.h
-index b8b80bb..c9a479d 100644
+index b8b80bb..042ed15 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostObjectCallbacks.h
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostObjectCallbacks.h
-@@ -68,7 +68,7 @@ private:
-   PropertyNamesGetter *_Nonnull _propertyNamesGetter;
-   Deallocator *_Nonnull _deallocator;
+@@ -7,7 +7,7 @@
  
--} SWIFT_NONCOPYABLE; // class HostObjectCallbacks
-+} ; // class HostObjectCallbacks
+ #include "RetainedSwiftPointer.h"
  
- } // namespace expo
+-namespace expo {
++namespace expo_jsi {
  
+ /**
+  Holds a pointer to `HostObjectContext` in Swift and host object's callbacks.
+@@ -70,6 +70,6 @@ private:
+ 
+ } SWIFT_NONCOPYABLE; // class HostObjectCallbacks
+ 
+-} // namespace expo
++} // namespace expo_jsi
+ 
+ #endif // __cplusplus
+diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/JSIUtils.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/JSIUtils.h
+index 7278abd..cfeb2a0 100644
+--- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/JSIUtils.h
++++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/JSIUtils.h
+@@ -23,7 +23,7 @@ namespace jsi = facebook::jsi;
+ // pointers that may legitimately be null (e.g. `getNativeState` return value).
+ #pragma clang assume_nonnull begin
+ 
+-namespace expo {
++namespace expo_jsi {
+ 
+ /**
+  Upcasts a `jsi::Runtime&` to a `jsi::IRuntime&`. RN 0.86 split the JSI API into
+@@ -123,7 +123,7 @@ inline jsi::Function createHostFunction(jsi::IRuntime &runtime, const char *name
+ 
+ /**
+  Returns whether `object` is backed by any `jsi::HostObject` subclass — this includes
+- host objects created by `expo::HostObject::makeObject`, by other React Native subsystems,
++ host objects created by `expo_jsi::HostObject::makeObject`, by other React Native subsystems,
+  and by JS engines themselves. Wraps the templated `jsi::Object::isHostObject<T>` so the
+  check is callable from Swift, where C++ function templates cannot be imported directly.
+  */
+@@ -144,7 +144,7 @@ inline void destroyRuntime(jsi::Runtime &runtime) {
+ }
+ 
+ inline jsi::Value evaluateJavaScript(jsi::IRuntime &runtime, const std::shared_ptr<const jsi::Buffer>& buffer, const std::string& sourceURL) {
+-  return expo::CppError::tryCatch(runtime, [&] {
++  return expo_jsi::CppError::tryCatch(runtime, [&] {
+     return runtime.evaluateJavaScript(buffer, sourceURL);
+   });
+ }
+@@ -182,19 +182,19 @@ inline void emplaceNumber(jsi::Value *_Nonnull slot, double value) noexcept {
+ }
+ 
+ inline jsi::Value callFunction(jsi::IRuntime &runtime, const jsi::Function &function, const jsi::Value *_Nullable args, size_t count) {
+-  return expo::CppError::tryCatch(runtime, [&] {
++  return expo_jsi::CppError::tryCatch(runtime, [&] {
+     return function.call(runtime, args, count);
+   });
+ }
+ 
+ inline jsi::Value callFunctionWithThis(jsi::IRuntime &runtime, const jsi::Function &function, const jsi::Object &jsThis, const jsi::Value *_Nullable args, size_t count) {
+-  return expo::CppError::tryCatch(runtime, [&] {
++  return expo_jsi::CppError::tryCatch(runtime, [&] {
+     return function.callWithThis(runtime, jsThis, args, count);
+   });
+ }
+ 
+ inline jsi::Value callAsConstructor(jsi::IRuntime &runtime, const jsi::Function &function, const jsi::Value *_Nullable args, size_t count) {
+-  return expo::CppError::tryCatch(runtime, [&] {
++  return expo_jsi::CppError::tryCatch(runtime, [&] {
+     return function.callAsConstructor(runtime, args, count);
+   });
+ }
+@@ -328,10 +328,10 @@ inline void releaseBorrowedBuffer(void *_Nonnull retainer) {
+ // MARK: - Native state
+ 
+ inline bool hasNativeState(jsi::IRuntime &runtime, const jsi::Object &object) {
+-  return object.hasNativeState<expo::NativeState>(runtime);
++  return object.hasNativeState<expo_jsi::NativeState>(runtime);
+ }
+ 
+-inline void setNativeState(jsi::IRuntime &runtime, const jsi::Object &object, const expo::NativeStateShared &nativeState) {
++inline void setNativeState(jsi::IRuntime &runtime, const jsi::Object &object, const expo_jsi::NativeStateShared &nativeState) {
+   object.setNativeState(runtime, nativeState);
+ }
+ 
+@@ -340,60 +340,60 @@ inline void unsetNativeState(jsi::IRuntime &runtime, const jsi::Object &object)
+ }
+ 
+ /**
+- Returns the `expo::NativeState` attached to the object, or `nullptr` if the object
+- has no native state, or its native state isn't an `expo::NativeState` subclass.
++ Returns the `expo_jsi::NativeState` attached to the object, or `nullptr` if the object
++ has no native state, or its native state isn't an `expo_jsi::NativeState` subclass.
+  Adopted native states (those constructed in external C++ code) are recovered too
+- as long as their concrete type derives from `expo::NativeState`.
++ as long as their concrete type derives from `expo_jsi::NativeState`.
+ 
+- Hot path: avoids `Object::hasNativeState<expo::NativeState>` (which internally
++ Hot path: avoids `Object::hasNativeState<expo_jsi::NativeState>` (which internally
+  fetches the native state and runs `dynamic_pointer_cast`) followed by another
+- `getNativeState<expo::NativeState>`. Instead, do a single bool check via the
++ `getNativeState<expo_jsi::NativeState>`. Instead, do a single bool check via the
+  specialized `hasNativeState<jsi::NativeState>`, fetch once, and dynamic-cast inline.
+  The pointee survives the temporary shared_ptr's destruction because JSI's slot
+  retains it.
+  */
+-inline expo::NativeState *_Nullable getExpoNativeState(jsi::IRuntime &runtime, const jsi::Object &object) {
++inline expo_jsi::NativeState *_Nullable getExpoNativeState(jsi::IRuntime &runtime, const jsi::Object &object) {
+   if (!object.hasNativeState<jsi::NativeState>(runtime)) {
+     return nullptr;
+   }
+-  return dynamic_cast<expo::NativeState *>(
++  return dynamic_cast<expo_jsi::NativeState *>(
+     object.getNativeState<jsi::NativeState>(runtime).get()
+   );
+ }
+ 
+ /**
+  Factory used by the default `JavaScriptNativeState` initializer. Builds a fresh
+- `expo::NativeState` with the given context/deallocator and returns it wrapped in
+- the `expo::NativeStateShared` typedef so Swift can hold it as a single value.
++ `expo_jsi::NativeState` with the given context/deallocator and returns it wrapped in
++ the `expo_jsi::NativeStateShared` typedef so Swift can hold it as a single value.
+  */
+-inline expo::NativeStateShared makeExpoNativeStateShared(expo::NativeState::Context context,
+-                                                         expo::NativeState::ContextDeallocator deallocator) {
+-  return std::make_shared<expo::NativeState>(context, deallocator);
++inline expo_jsi::NativeStateShared makeExpoNativeStateShared(expo_jsi::NativeState::Context context,
++                                                         expo_jsi::NativeState::ContextDeallocator deallocator) {
++  return std::make_shared<expo_jsi::NativeState>(context, deallocator);
+ }
+ 
+ /**
+- Builds an `expo::NativeStateWeak` from a strong `expo::NativeStateShared`.
++ Builds an `expo_jsi::NativeStateWeak` from a strong `expo_jsi::NativeStateShared`.
+  Exists because Swift/C++ interop does not expose `std::weak_ptr`'s constructor
+  directly, so Swift can't write `expo.NativeStateWeak(shared)`.
+  */
+-inline expo::NativeStateWeak makeNativeStateWeak(const expo::NativeStateShared &shared) {
+-  return expo::NativeStateWeak(shared);
++inline expo_jsi::NativeStateWeak makeNativeStateWeak(const expo_jsi::NativeStateShared &shared) {
++  return expo_jsi::NativeStateWeak(shared);
+ }
+ 
+ /**
+- Moves the heap-allocated `expo::NativeStateShared` at `ptr` into a returned
++ Moves the heap-allocated `expo_jsi::NativeStateShared` at `ptr` into a returned
+  by-value `NativeStateShared`, then `delete`s the heap allocation. Pairs with
+- `new expo::NativeStateShared(...)` performed by no-interop C++ consumers
++ `new expo_jsi::NativeStateShared(...)` performed by no-interop C++ consumers
+  (e.g. `EXSharedObjectUtils.mm`) — using Swift's `UnsafeMutablePointer.deallocate()`
+  on a pointer obtained from C++ `new` would be an allocator mismatch.
+  */
+-inline expo::NativeStateShared consumeNativeStateSharedPtr(expo::NativeStateShared *ptr) {
+-  expo::NativeStateShared shared = std::move(*ptr);
++inline expo_jsi::NativeStateShared consumeNativeStateSharedPtr(expo_jsi::NativeStateShared *ptr) {
++  expo_jsi::NativeStateShared shared = std::move(*ptr);
+   delete ptr;
+   return shared;
+ }
+ 
+-} // namespace expo
++} // namespace expo_jsi
+ 
+ #pragma clang assume_nonnull end
+ 
+diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/MemoryBuffer.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/MemoryBuffer.h
+index 40dc871..971cf64 100644
+--- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/MemoryBuffer.h
++++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/MemoryBuffer.h
+@@ -6,7 +6,7 @@
+ #include <functional>
+ #include <jsi/jsi.h>
+ 
+-namespace expo {
++namespace expo_jsi {
+ 
+ using CleanupFunc = std::function<void()>;
+ 
+@@ -46,6 +46,6 @@ private:
+   CleanupFunc cleanupFunc_;
+ };
+ 
+-} // namespace expo
++} // namespace expo_jsi
+ 
+ #endif // __cplusplus
+diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/Public/NativeState.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/Public/NativeState.h
+index 14b13ea..6299bd9 100644
+--- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/Public/NativeState.h
++++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/Public/NativeState.h
+@@ -5,7 +5,7 @@
+ 
+ // `SWIFT_RETURNS_INDEPENDENT_VALUE` tells Swift/C++ interop that `getContext()`
+ // hands back a value that doesn't borrow from the receiver — required so the
+-// method is importable on the now-move-only `expo::NativeState`. The bridging
++// method is importable on the now-move-only `expo_jsi::NativeState`. The bridging
+ // header lives in the Xcode toolchain include path and the macro expands to
+ // empty when interop isn't enabled, so non-interop C++ consumers can include
+ // this header normally.
+@@ -15,7 +15,7 @@
+ #define SWIFT_RETURNS_INDEPENDENT_VALUE
+ #endif
+ 
+-namespace expo {
++namespace expo_jsi {
+ 
+ /**
+  Base class for `jsi::NativeState` instances that need to round-trip through
+@@ -91,4 +91,4 @@ using NativeStateShared = std::shared_ptr<facebook::jsi::NativeState>;
+  */
+ using NativeStateWeak = std::weak_ptr<facebook::jsi::NativeState>;
+ 
+-} // namespace expo
++} // namespace expo_jsi
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RetainedSwiftPointer.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RetainedSwiftPointer.h
-index 39611db..51a7733 100644
+index 39611db..57b76bd 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RetainedSwiftPointer.h
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RetainedSwiftPointer.h
-@@ -22,6 +22,6 @@ protected:
-   Context _context;
-   Deallocator *_Nonnull _deallocator;
+@@ -3,7 +3,7 @@
+ #include <memory>
+ #include <swift/bridging>
  
--} SWIFT_IMMORTAL_REFERENCE; // class RetainedSwiftPointer
-+} ; // class RetainedSwiftPointer
+-namespace expo {
++namespace expo_jsi {
  
- } // namespace expo
+ /**
+  Holds a type-erased pointer to a Swift instance that is now owned by this C++ instance.
+@@ -24,4 +24,4 @@ protected:
+ 
+ } SWIFT_IMMORTAL_REFERENCE; // class RetainedSwiftPointer
+ 
+-} // namespace expo
++} // namespace expo_jsi
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h
-index 6115e87..585a974 100644
+index 6115e87..049c46e 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h
-@@ -50,7 +50,7 @@ public:
-    `scheduleTask` dispatches through `fn`, which the host implements against
-    the real react::RuntimeScheduler.
-    */
--  SWIFT_RETURNS_RETAINED RuntimeScheduler(void *scheduler, ScheduleFn fn) noexcept
-+  RuntimeScheduler(void *scheduler, ScheduleFn fn) noexcept
-       : nativeScheduler(scheduler), scheduleFn(fn) {}
+@@ -5,7 +5,7 @@
+ #include <atomic>
+ #include <swift/bridging>
  
-   /**
-@@ -58,7 +58,7 @@ public:
-    caller's thread — intended for standalone runtimes (e.g. tests) that have
-    no React scheduler.
-    */
--  SWIFT_RETURNS_RETAINED RuntimeScheduler() {}
-+  RuntimeScheduler() {}
+-namespace expo {
++namespace expo_jsi {
  
-   RuntimeScheduler(const RuntimeScheduler &) = delete;
- 
-@@ -87,7 +87,7 @@ public:
-       delete this;
-     }
+ /**
+  Wrapper around React Native's RuntimeScheduler. The native scheduler reference
+@@ -89,15 +89,15 @@ public:
    }
--} SWIFT_SHARED_REFERENCE(retainRuntimeScheduler, releaseRuntimeScheduler);
-+} ;
+ } SWIFT_SHARED_REFERENCE(retainRuntimeScheduler, releaseRuntimeScheduler);
  
- } // namespace expo
+-} // namespace expo
++} // namespace expo_jsi
  
+ /** Retains the RuntimeScheduler, called by Swift's ARC. */
+-inline void retainRuntimeScheduler(expo::RuntimeScheduler *scheduler) {
++inline void retainRuntimeScheduler(expo_jsi::RuntimeScheduler *scheduler) {
+   scheduler->retain();
+ }
+ 
+ /** Releases the RuntimeScheduler, called by Swift's ARC. Deallocates when the ref count reaches zero. */
+-inline void releaseRuntimeScheduler(expo::RuntimeScheduler *scheduler) {
++inline void releaseRuntimeScheduler(expo_jsi::RuntimeScheduler *scheduler) {
+   scheduler->release();
+ }
+ 
+diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/TypedArray.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/TypedArray.h
+index 60e99b4..6ba2432 100644
+--- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/TypedArray.h
++++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/TypedArray.h
+@@ -8,7 +8,7 @@
+ 
+ namespace jsi = facebook::jsi;
+ 
+-namespace expo {
++namespace expo_jsi {
+ 
+ // Please keep it in-sync with the `EXTypedArrayKind` in Objective-C.
+ // We need to maintain two implementations to expose this enum to Swift.
+@@ -40,6 +40,6 @@ TypedArrayKind getTypedArrayKind(jsi::IRuntime &runtime, const jsi::Object &jsOb
+  */
+ jsi::ArrayBuffer getTypedArrayBuffer(jsi::IRuntime &runtime, const jsi::Object &jsObj);
+ 
+-} // namespace expo
++} // namespace expo_jsi
+ 
+ #endif // __cplusplus
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Protocols/JSIRepresentable.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Protocols/JSIRepresentable.swift
-index 1553863..d340b97 100644
+index 1553863..58e007d 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Protocols/JSIRepresentable.swift
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Protocols/JSIRepresentable.swift
+@@ -1,5 +1,5 @@
+ import CoreGraphics
+-internal import ExpoModulesJSI_Cxx
++public import ExpoModulesJSI_Cxx
+ internal import jsi
+ 
+ /// A type whose values can be represented as `facebook.jsi.Value`.
 @@ -137,9 +137,9 @@ extension Array: JSIRepresentable where Element: JSIRepresentable {
      let jsiArray = facebook.jsi.Array(runtime, count)
  
      for index in 0..<count {
 -      expo.setValueAtIndex(runtime, jsiArray, index, self[index].toJSIValue(in: runtime))
-+      ExpoModulesJSI_Cxx.expo.setValueAtIndex(runtime, jsiArray, index, self[index].toJSIValue(in: runtime))
++      expo_jsi.setValueAtIndex(runtime, jsiArray, index, self[index].toJSIValue(in: runtime))
      }
 -    return expo.valueFromArray(runtime, jsiArray)
-+    return ExpoModulesJSI_Cxx.expo.valueFromArray(runtime, jsiArray)
++    return expo_jsi.valueFromArray(runtime, jsiArray)
    }
  }
  
@@ -349,7 +413,7 @@ index 1553863..d340b97 100644
  
      for (key, value) in self {
 -      expo.setProperty(runtime, object, key.toJSIPropNameID(in: runtime), value.toJSIValue(in: runtime))
-+      ExpoModulesJSI_Cxx.expo.setProperty(runtime, object, key.toJSIPropNameID(in: runtime), value.toJSIValue(in: runtime))
++      expo_jsi.setProperty(runtime, object, key.toJSIPropNameID(in: runtime), value.toJSIValue(in: runtime))
      }
      return facebook.jsi.Value(runtime, object)
    }
@@ -376,15 +440,21 @@ index bedb057..22744c6 100644
    init(runtime: JavaScriptRuntime) {
      self.runtime = runtime
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptNativeState.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptNativeState.swift
-index dfe154c..09761d6 100644
+index dfe154c..7097a22 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptNativeState.swift
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptNativeState.swift
+@@ -1,4 +1,4 @@
+-internal import ExpoModulesJSI_Cxx
++public import ExpoModulesJSI_Cxx
+ internal import jsi
+ 
+ /// Base class for JS object's native state.
 @@ -25,7 +25,7 @@ open class JavaScriptNativeState {
    private typealias InternalFactory = (
      _ context: UnsafeMutableRawPointer,
      _ deallocator: @convention(c) (UnsafeMutableRawPointer?) -> Void
 -  ) -> expo.NativeStateShared
-+  ) -> ExpoModulesJSI_Cxx.expo.NativeStateShared
++  ) -> expo_jsi.NativeStateShared
  
    /// Non-owning reference to the underlying C++ `expo::NativeState`. `nil` until
    /// the first `setNativeState` call materializes a pointee, and stays populated
@@ -393,7 +463,7 @@ index dfe154c..09761d6 100644
    public init() {
      self.factory = { context, contextDeallocator in
 -      return expo.makeExpoNativeStateShared(context, contextDeallocator)
-+      return ExpoModulesJSI_Cxx.expo.makeExpoNativeStateShared(context, contextDeallocator)
++      return expo_jsi.makeExpoNativeStateShared(context, contextDeallocator)
      }
    }
  
@@ -403,8 +473,8 @@ index dfe154c..09761d6 100644
        let pointer = factory(context, contextDeallocator)
 -      let typed = pointer.assumingMemoryBound(to: expo.NativeStateShared.self)
 -      return expo.consumeNativeStateSharedPtr(typed)
-+      let typed = pointer.assumingMemoryBound(to: ExpoModulesJSI_Cxx.expo.NativeStateShared.self)
-+      return ExpoModulesJSI_Cxx.expo.consumeNativeStateSharedPtr(typed)
++      let typed = pointer.assumingMemoryBound(to: expo_jsi.NativeStateShared.self)
++      return expo_jsi.consumeNativeStateSharedPtr(typed)
      }
    }
  
@@ -413,7 +483,7 @@ index dfe154c..09761d6 100644
    /// path (e.g. worklets attaching the same native state from a different
    /// runtime/thread) must add locking before reusing this entry point.
 -  internal func acquireShared() -> expo.NativeStateShared {
-+  internal func acquireShared() -> ExpoModulesJSI_Cxx.expo.NativeStateShared {
++  internal func acquireShared() -> expo_jsi.NativeStateShared {
      if let alive = weakPointee?.lock() {
        return alive
      }
@@ -422,13 +492,13 @@ index dfe154c..09761d6 100644
    }
  
 -  /// Turns the C++ `expo.NativeState` pointer into its Swift counterpart, or
-+  /// Turns the C++ `ExpoModulesJSI_Cxx.expo.NativeState` pointer into its Swift counterpart, or
++  /// Turns the C++ `expo_jsi.NativeState` pointer into its Swift counterpart, or
    /// returns `nil` if the context is null or the recovered instance's type
    /// doesn't match `Self`. Precondition: a non-null context must be a retained
    /// `JavaScriptNativeState` opaque pointer (see `Public/NativeState.h::getContext`);
    /// any other layout will be reinterpreted and crash.
 -  internal static func from(cxx nativeState: UnsafeMutablePointer<expo.NativeState>) -> Self? {
-+  internal static func from(cxx nativeState: UnsafeMutablePointer<ExpoModulesJSI_Cxx.expo.NativeState>) -> Self? {
++  internal static func from(cxx nativeState: UnsafeMutablePointer<expo_jsi.NativeState>) -> Self? {
      guard let context = nativeState.pointee.getContext() else {
        return nil
      }
@@ -437,24 +507,27 @@ index dfe154c..09761d6 100644
    /// already dropped it.
    private struct WeakPointer {
 -    let inner: expo.NativeStateWeak
-+    let inner: ExpoModulesJSI_Cxx.expo.NativeStateWeak
++    let inner: expo_jsi.NativeStateWeak
  
 -    init(_ shared: borrowing expo.NativeStateShared) {
 -      self.inner = expo.makeNativeStateWeak(shared)
-+    init(_ shared: borrowing ExpoModulesJSI_Cxx.expo.NativeStateShared) {
-+      self.inner = ExpoModulesJSI_Cxx.expo.makeNativeStateWeak(shared)
++    init(_ shared: borrowing expo_jsi.NativeStateShared) {
++      self.inner = expo_jsi.makeNativeStateWeak(shared)
      }
  
 -    func lock() -> expo.NativeStateShared? {
-+    func lock() -> ExpoModulesJSI_Cxx.expo.NativeStateShared? {
++    func lock() -> expo_jsi.NativeStateShared? {
        let strong = inner.lock()
        return strong.__convertToBool() ? strong : nil
      }
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptPropNameID.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptPropNameID.swift
-index d43cdd5..91ee97e 100644
+index d43cdd5..cbdcfb5 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptPropNameID.swift
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptPropNameID.swift
-@@ -3,7 +3,7 @@ internal import jsi
+@@ -1,9 +1,9 @@
+-internal import ExpoModulesJSI_Cxx
++public import ExpoModulesJSI_Cxx
+ internal import jsi
  
  /// Represents something that can be a JS property key.
  public final class JavaScriptPropNameID: JavaScriptType {
@@ -464,15 +537,23 @@ index d43cdd5..91ee97e 100644
  
    /// Creates a PropNameID from existing `facebook.jsi.PropNameID`.
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift
-index 3d796ee..549db7f 100644
+index 3d796ee..7256dba 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift
+@@ -1,6 +1,6 @@
+ // Copyright 2025-present 650 Industries. All rights reserved.
+ 
+-internal import ExpoModulesJSI_Cxx
++public import ExpoModulesJSI_Cxx
+ import Foundation
+ internal import jsi
+ 
 @@ -26,7 +26,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
    /// two `SwiftImportAs: reference` types.
    ///
    /// Use ``runtimePointee`` instead when you specifically need a `jsi::Runtime&`
 -  /// (e.g. constructing an `expo.RuntimeScheduler` whose binding lookup is typed on
-+  /// (e.g. constructing an `ExpoModulesJSI_Cxx.expo.RuntimeScheduler` whose binding lookup is typed on
++  /// (e.g. constructing an `expo_jsi.RuntimeScheduler` whose binding lookup is typed on
    /// `Runtime&` upstream).
    ///
    /// Note that `facebook.jsi.IRuntime` and `facebook.jsi.Runtime` are imported as
@@ -481,7 +562,7 @@ index 3d796ee..549db7f 100644
    internal let pointee: facebook.jsi.IRuntime
    internal let runtimePointee: facebook.jsi.Runtime
 -  internal let scheduler: expo.RuntimeScheduler
-+  internal let scheduler: ExpoModulesJSI_Cxx.expo.RuntimeScheduler
++  internal let scheduler: expo_jsi.RuntimeScheduler
  
    /// Whether this wrapper owns the underlying `jsi::Runtime` and must destroy it on `deinit`. True
    /// only for the standalone `init()`, which creates the runtime via `createHermesRuntime()`. The
@@ -491,8 +572,8 @@ index 3d796ee..549db7f 100644
      self.runtimePointee = runtime
 -    self.pointee = expo.iruntime(runtime)
 -    self.scheduler = expo.RuntimeScheduler()
-+    self.pointee = ExpoModulesJSI_Cxx.expo.iruntime(runtime)
-+    self.scheduler = ExpoModulesJSI_Cxx.expo.RuntimeScheduler()
++    self.pointee = expo_jsi.iruntime(runtime)
++    self.scheduler = expo_jsi.RuntimeScheduler()
      self.ownsRuntime = false
      installLongLivedObjectsTeardown()
    }
@@ -501,12 +582,12 @@ index 3d796ee..549db7f 100644
    /// no React scheduler is wired up.
    public init() {
 -    let runtime = expo.createHermesRuntime()
-+    let runtime = ExpoModulesJSI_Cxx.expo.createHermesRuntime()
++    let runtime = expo_jsi.createHermesRuntime()
      self.runtimePointee = runtime
 -    self.pointee = expo.iruntime(runtime)
 -    self.scheduler = expo.RuntimeScheduler()
-+    self.pointee = ExpoModulesJSI_Cxx.expo.iruntime(runtime)
-+    self.scheduler = ExpoModulesJSI_Cxx.expo.RuntimeScheduler()
++    self.pointee = expo_jsi.iruntime(runtime)
++    self.scheduler = expo_jsi.RuntimeScheduler()
      self.ownsRuntime = true
      installLongLivedObjectsTeardown()
    }
@@ -516,8 +597,8 @@ index 3d796ee..549db7f 100644
      self.runtimePointee = runtime
 -    self.pointee = expo.iruntime(runtime)
 -    self.scheduler = expo.RuntimeScheduler()
-+    self.pointee = ExpoModulesJSI_Cxx.expo.iruntime(runtime)
-+    self.scheduler = ExpoModulesJSI_Cxx.expo.RuntimeScheduler()
++    self.pointee = expo_jsi.iruntime(runtime)
++    self.scheduler = expo_jsi.RuntimeScheduler()
      self.ownsRuntime = false
      installLongLivedObjectsTeardown()
    }
@@ -526,12 +607,12 @@ index 3d796ee..549db7f 100644
    ) {
      let runtime = unsafeBitCast(unsafePointer, to: facebook.jsi.Runtime.self)
 -    let fn = unsafeBitCast(dispatch, to: expo.RuntimeScheduler.ScheduleFn.self)
-+    let fn = unsafeBitCast(dispatch, to: ExpoModulesJSI_Cxx.expo.RuntimeScheduler.ScheduleFn.self)
++    let fn = unsafeBitCast(dispatch, to: expo_jsi.RuntimeScheduler.ScheduleFn.self)
      self.runtimePointee = runtime
 -    self.pointee = expo.iruntime(runtime)
 -    self.scheduler = expo.RuntimeScheduler(scheduler, fn)
-+    self.pointee = ExpoModulesJSI_Cxx.expo.iruntime(runtime)
-+    self.scheduler = ExpoModulesJSI_Cxx.expo.RuntimeScheduler(scheduler, fn)
++    self.pointee = expo_jsi.iruntime(runtime)
++    self.scheduler = expo_jsi.RuntimeScheduler(scheduler, fn)
      self.ownsRuntime = false
      installLongLivedObjectsTeardown()
    }
@@ -540,7 +621,7 @@ index 3d796ee..549db7f 100644
      propNameIdsRegistry.removeAll()
      cachedDeferredPromiseFactory = nil
 -    expo.destroyRuntime(runtimePointee)
-+    ExpoModulesJSI_Cxx.expo.destroyRuntime(runtimePointee)
++    expo_jsi.destroyRuntime(runtimePointee)
    }
  
    /// Provides scoped access to a raw pointer to the underlying `facebook.jsi.Runtime`.
@@ -549,7 +630,7 @@ index 3d796ee..549db7f 100644
          guard let set = context.set else {
            // Unreachable in practice: when the user passed `nil` for `set`, the call site
 -          // below at `expo.HostObjectCallbacks(...)` also passes `nil` to C++, and
-+          // below at `ExpoModulesJSI_Cxx.expo.HostObjectCallbacks(...)` also passes `nil` to C++, and
++          // below at `expo_jsi.HostObjectCallbacks(...)` also passes `nil` to C++, and
            // `HostObjectCallbacks::set` throws a `jsi::JSError` directly instead of
            // calling back into Swift. Trap loudly so a future C++ refactor can't silently
            // swallow assignments.
@@ -558,7 +639,7 @@ index 3d796ee..549db7f 100644
      }
  
 -    func propertyNamesGetter(context: UnsafeMutableRawPointer) -> expo.HostObjectCallbacks.PropNameIds {
-+    func propertyNamesGetter(context: UnsafeMutableRawPointer) -> ExpoModulesJSI_Cxx.expo.HostObjectCallbacks.PropNameIds {
++    func propertyNamesGetter(context: UnsafeMutableRawPointer) -> expo_jsi.HostObjectCallbacks.PropNameIds {
        let context = Unmanaged<HostObjectContext>.fromOpaque(context).takeUnretainedValue()
        // `IRuntime` is an immortal reference, so reading it through the guaranteed wrapper
        // reference costs no reference counting here either.
@@ -567,7 +648,7 @@ index 3d796ee..549db7f 100644
          return context.getPropertyNames()
        }
 -      var vector = expo.HostObjectCallbacks.PropNameIds()
-+      var vector = ExpoModulesJSI_Cxx.expo.HostObjectCallbacks.PropNameIds()
++      var vector = expo_jsi.HostObjectCallbacks.PropNameIds()
  
        vector.reserve(propertyNames.count)
  
@@ -576,10 +657,10 @@ index 3d796ee..549db7f 100644
      // Pass a null setter to C++ when the Swift setter is nil so that JS assignment
      // raises a `jsi::JSError` directly, without crossing the Swift boundary.
 -    let callbacks = expo.HostObjectCallbacks(
-+    let callbacks = ExpoModulesJSI_Cxx.expo.HostObjectCallbacks(
++    let callbacks = expo_jsi.HostObjectCallbacks(
        context, getter, set == nil ? nil : setterPointer, propertyNamesGetter, deallocate)
 -    let hostObject = expo.HostObject.makeObject(pointee, consume callbacks)
-+    let hostObject = ExpoModulesJSI_Cxx.expo.HostObject.makeObject(pointee, consume callbacks)
++    let hostObject = expo_jsi.HostObject.makeObject(pointee, consume callbacks)
  
      return JavaScriptObject(self, hostObject)
    }
@@ -588,7 +669,7 @@ index 3d796ee..549db7f 100644
    /// Creates a new array buffer of the given size with zero-initialized memory.
    public func createArrayBuffer(size: Int) -> JavaScriptArrayBuffer {
 -    let jsiArrayBuffer = expo.createArrayBuffer(pointee, size)
-+    let jsiArrayBuffer = ExpoModulesJSI_Cxx.expo.createArrayBuffer(pointee, size)
++    let jsiArrayBuffer = expo_jsi.createArrayBuffer(pointee, size)
      return JavaScriptArrayBuffer(self, jsiArrayBuffer)
    }
  
@@ -597,7 +678,7 @@ index 3d796ee..549db7f 100644
    {
      let context = Unmanaged.passRetained(CleanupContext(cleanup)).toOpaque()
 -    let jsiArrayBuffer = expo.createArrayBuffer(pointee, data, size, context) { context in
-+    let jsiArrayBuffer = ExpoModulesJSI_Cxx.expo.createArrayBuffer(pointee, data, size, context) { context in
++    let jsiArrayBuffer = expo_jsi.createArrayBuffer(pointee, data, size, context) { context in
        Unmanaged<CleanupContext>.fromOpaque(context).release()
      }
      return JavaScriptArrayBuffer(self, jsiArrayBuffer)
@@ -615,7 +696,7 @@ index 3d796ee..549db7f 100644
    public func createFunction(_ name: String, _ function: sending @escaping SyncFunctionClosure) -> JavaScriptFunction {
      let closure = createFunctionClosure(runtime: self, name: name, function)
 -    let hostFunction = expo.createHostFunction(pointee, name, closure)
-+    let hostFunction = ExpoModulesJSI_Cxx.expo.createHostFunction(pointee, name, closure)
++    let hostFunction = expo_jsi.createHostFunction(pointee, name, closure)
  
      return JavaScriptFunction(self, hostFunction)
    }
@@ -624,7 +705,7 @@ index 3d796ee..549db7f 100644
    public func createFunction(_ function: sending @escaping SyncFunctionClosure) -> JavaScriptFunction {
      let closure = createFunctionClosure(runtime: self, name: nil, function)
 -    let hostFunction = expo.createHostFunction(pointee, JavaScriptPropNameID.cached(self, "").pointee, closure)
-+    let hostFunction = ExpoModulesJSI_Cxx.expo.createHostFunction(pointee, JavaScriptPropNameID.cached(self, "").pointee, closure)
++    let hostFunction = expo_jsi.createHostFunction(pointee, JavaScriptPropNameID.cached(self, "").pointee, closure)
  
      return JavaScriptFunction(self, hostFunction)
    }
@@ -633,7 +714,7 @@ index 3d796ee..549db7f 100644
    ) -> JavaScriptFunction {
      let closure = createFunctionClosure(runtime: self, name: name, function)
 -    let hostFunction = expo.createHostFunction(pointee, name, closure)
-+    let hostFunction = ExpoModulesJSI_Cxx.expo.createHostFunction(pointee, name, closure)
++    let hostFunction = expo_jsi.createHostFunction(pointee, name, closure)
  
      return JavaScriptFunction(self, hostFunction)
    }
@@ -642,7 +723,7 @@ index 3d796ee..549db7f 100644
      @_implicitSelfCapture _ closure: @escaping @JavaScriptActor () -> sending Void
    ) {
 -    let cxxPriority = expo.RuntimeScheduler.Priority(rawValue: priority.rawValue) ?? .NormalPriority
-+    let cxxPriority = ExpoModulesJSI_Cxx.expo.RuntimeScheduler.Priority(rawValue: priority.rawValue) ?? .NormalPriority
++    let cxxPriority = expo_jsi.RuntimeScheduler.Priority(rawValue: priority.rawValue) ?? .NormalPriority
      scheduler.scheduleTask(cxxPriority) {
        JavaScriptActor.assumeIsolated(closure)
      }
@@ -651,16 +732,16 @@ index 3d796ee..549db7f 100644
    @JavaScriptActor
    public func eval(label: String? = nil, _ source: String) throws -> JavaScriptValue {
 -    let stringBuffer = expo.makeSharedStringBuffer(std.string(source))
-+    let stringBuffer = ExpoModulesJSI_Cxx.expo.makeSharedStringBuffer(std.string(source))
++    let stringBuffer = expo_jsi.makeSharedStringBuffer(std.string(source))
  
      do {
        let jsiValue = try capturingCppErrors {
 -        return expo.evaluateJavaScript(pointee, stringBuffer, std.string(label ?? "<<evaluated>>"))
-+        return ExpoModulesJSI_Cxx.expo.evaluateJavaScript(pointee, stringBuffer, std.string(label ?? "<<evaluated>>"))
++        return expo_jsi.evaluateJavaScript(pointee, stringBuffer, std.string(label ?? "<<evaluated>>"))
        }
        return JavaScriptValue(self, jsiValue)
 -    } catch let error as expo.CppError {
-+    } catch let error as ExpoModulesJSI_Cxx.expo.CppError {
++    } catch let error as expo_jsi.CppError {
        throw ScriptEvaluationError(message: error.message)
      }
    }
@@ -669,7 +750,7 @@ index 3d796ee..549db7f 100644
    @JavaScriptActor
    public func collectGarbage(cause: String = #function) {
 -    expo.collectGarbage(pointee, std.string(cause))
-+    ExpoModulesJSI_Cxx.expo.collectGarbage(pointee, std.string(cause))
++    expo_jsi.collectGarbage(pointee, std.string(cause))
    }
  
    // MARK: - Equatable
@@ -678,7 +759,7 @@ index 3d796ee..549db7f 100644
  private func createFunctionClosure(
    runtime: JavaScriptRuntime, name: String? = nil, _ closure: @escaping JavaScriptRuntime.SyncFunctionClosure
 -) -> expo.HostFunctionClosure {
-+) -> ExpoModulesJSI_Cxx.expo.HostFunctionClosure {
++) -> expo_jsi.HostFunctionClosure {
    let context = Unmanaged.passRetained(HostFunctionContext(runtime: runtime, name: name, closure)).toOpaque()
  
    func call(
@@ -687,14 +768,14 @@ index 3d796ee..549db7f 100644
    }
  
 -  return expo.HostFunctionClosure(context, call, deallocate)
-+  return ExpoModulesJSI_Cxx.expo.HostFunctionClosure(context, call, deallocate)
++  return expo_jsi.HostFunctionClosure(context, call, deallocate)
  }
  
  private func createFunctionClosure(
    runtime: JavaScriptRuntime, name: String? = nil,
    _ closure: @escaping JavaScriptRuntime.UnownedThisSyncFunctionClosure
 -) -> expo.HostFunctionClosure {
-+) -> ExpoModulesJSI_Cxx.expo.HostFunctionClosure {
++) -> expo_jsi.HostFunctionClosure {
    let context = Unmanaged.passRetained(UnownedThisHostFunctionContext(runtime: runtime, name: name, closure)).toOpaque()
  
    func call(
@@ -703,15 +784,20 @@ index 3d796ee..549db7f 100644
    }
  
 -  return expo.HostFunctionClosure(context, call, deallocate)
-+  return ExpoModulesJSI_Cxx.expo.HostFunctionClosure(context, call, deallocate)
++  return expo_jsi.HostFunctionClosure(context, call, deallocate)
  }
  
  // MARK: - Errors
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptArray.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptArray.swift
-index 2dc3f68..feb8042 100644
+index 2dc3f68..27f59c1 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptArray.swift
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptArray.swift
-@@ -5,7 +5,7 @@ internal import jsi
+@@ -1,11 +1,11 @@
+-internal import ExpoModulesJSI_Cxx
++public import ExpoModulesJSI_Cxx
+ internal import jsi
+ 
+ /// A Swift representation of a JavaScript array. `JavaScriptArray` provides a bridge between JavaScript arrays
  /// and Swift, allowing you to access and manipulate JavaScript array elements from Swift code. It maintains a reference
  /// to the underlying JavaScript array and provides Swift-friendly APIs for common array operations.
  public struct JavaScriptArray: JavaScriptType, ~Copyable {
@@ -725,7 +811,7 @@ index 2dc3f68..feb8042 100644
          FatalError.runtimeLost()
        }
 -      expo.setArrayLength(runtime.pointee, pointee, newLength)
-+      ExpoModulesJSI_Cxx.expo.setArrayLength(runtime.pointee, pointee, newLength)
++      expo_jsi.setArrayLength(runtime.pointee, pointee, newLength)
      }
    }
  
@@ -734,7 +820,7 @@ index 2dc3f68..feb8042 100644
      }
      let jsiValue = value.toJavaScriptValue(in: runtime).toJSIValue(in: runtime.pointee)
 -    expo.setValueAtIndex(runtime.pointee, pointee, index, jsiValue)
-+    ExpoModulesJSI_Cxx.expo.setValueAtIndex(runtime.pointee, pointee, index, jsiValue)
++    expo_jsi.setValueAtIndex(runtime.pointee, pointee, index, jsiValue)
    }
  
    /// Accesses array elements by numeric index with safe, non-throwing behavior.
@@ -743,7 +829,7 @@ index 2dc3f68..feb8042 100644
          self.length = index + 1
        }
 -      expo.setValueAtIndex(runtime.pointee, pointee, index, newValue.pointee)
-+      ExpoModulesJSI_Cxx.expo.setValueAtIndex(runtime.pointee, pointee, index, newValue.pointee)
++      expo_jsi.setValueAtIndex(runtime.pointee, pointee, index, newValue.pointee)
      }
    }
  
@@ -752,7 +838,7 @@ index 2dc3f68..feb8042 100644
            facebook.jsi.Value.undefined()
          }
 -      expo.setValueAtIndex(runtime.pointee, pointee, index, jsiValue)
-+      ExpoModulesJSI_Cxx.expo.setValueAtIndex(runtime.pointee, pointee, index, jsiValue)
++      expo_jsi.setValueAtIndex(runtime.pointee, pointee, index, jsiValue)
      }
    }
  
@@ -761,7 +847,7 @@ index 2dc3f68..feb8042 100644
          FatalError.runtimeLost()
        }
 -      let jsiValue = expo.getProperty(runtime.pointee, pointee, key.toJSIPropNameID(in: runtime.pointee))
-+      let jsiValue = ExpoModulesJSI_Cxx.expo.getProperty(runtime.pointee, pointee, key.toJSIPropNameID(in: runtime.pointee))
++      let jsiValue = expo_jsi.getProperty(runtime.pointee, pointee, key.toJSIPropNameID(in: runtime.pointee))
        return JavaScriptValue(runtime, jsiValue)
      }
      nonmutating set(newValue) {
@@ -770,7 +856,7 @@ index 2dc3f68..feb8042 100644
        }
        let jsiValue = newValue.toJSIValue(in: runtime.pointee)
 -      expo.setProperty(runtime.pointee, pointee, key.toJSIPropNameID(in: runtime.pointee), jsiValue)
-+      ExpoModulesJSI_Cxx.expo.setProperty(runtime.pointee, pointee, key.toJSIPropNameID(in: runtime.pointee), jsiValue)
++      expo_jsi.setProperty(runtime.pointee, pointee, key.toJSIPropNameID(in: runtime.pointee), jsiValue)
      }
    }
  
@@ -779,15 +865,21 @@ index 2dc3f68..feb8042 100644
        FatalError.runtimeLost()
      }
 -    return JavaScriptValue(runtime, expo.valueFromArray(runtime.pointee, pointee))
-+    return JavaScriptValue(runtime, ExpoModulesJSI_Cxx.expo.valueFromArray(runtime.pointee, pointee))
++    return JavaScriptValue(runtime, expo_jsi.valueFromArray(runtime.pointee, pointee))
    }
  
    /// Converts the array to a `JavaScriptObject`.
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptArrayBuffer.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptArrayBuffer.swift
-index 34bd6f8..d2112d2 100644
+index 34bd6f8..3590997 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptArrayBuffer.swift
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptArrayBuffer.swift
-@@ -6,7 +6,7 @@ internal import jsi
+@@ -1,12 +1,12 @@
+ // Copyright 2025-present 650 Industries. All rights reserved.
+ 
+-internal import ExpoModulesJSI_Cxx
++public import ExpoModulesJSI_Cxx
+ internal import jsi
+ 
  /// A Swift representation of a JavaScript array buffer. Provides access to the
  /// underlying raw data pointer and size of the buffer.
  public struct JavaScriptArrayBuffer: ~Copyable {
@@ -801,7 +893,7 @@ index 34bd6f8..d2112d2 100644
        FatalError.runtimeLost()
      }
 -    return Int(expo.arrayBufferSize(runtime.pointee, pointee))
-+    return Int(ExpoModulesJSI_Cxx.expo.arrayBufferSize(runtime.pointee, pointee))
++    return Int(expo_jsi.arrayBufferSize(runtime.pointee, pointee))
    }
  
    /// Alias for `size` that matches JavaScript's `ArrayBuffer.byteLength` property.
@@ -810,7 +902,7 @@ index 34bd6f8..d2112d2 100644
        FatalError.runtimeLost()
      }
 -    return expo.arrayBufferData(runtime.pointee, pointee)
-+    return ExpoModulesJSI_Cxx.expo.arrayBufferData(runtime.pointee, pointee)
++    return expo_jsi.arrayBufferData(runtime.pointee, pointee)
    }
  
    /// Creates a new array buffer with a copy of this buffer's data.
@@ -819,7 +911,7 @@ index 34bd6f8..d2112d2 100644
        FatalError.runtimeLost()
      }
 -    let borrowed = expo.tryBorrowMutableBuffer(runtime.pointee, pointee)
-+    let borrowed = ExpoModulesJSI_Cxx.expo.tryBorrowMutableBuffer(runtime.pointee, pointee)
++    let borrowed = expo_jsi.tryBorrowMutableBuffer(runtime.pointee, pointee)
      guard let data = borrowed.data, let retainer = borrowed.retainer else {
        return nil
      }
@@ -828,7 +920,7 @@ index 34bd6f8..d2112d2 100644
        FatalError.runtimeLost()
      }
 -    return JavaScriptValue(runtime, expo.valueFromArrayBuffer(runtime.pointee, pointee))
-+    return JavaScriptValue(runtime, ExpoModulesJSI_Cxx.expo.valueFromArrayBuffer(runtime.pointee, pointee))
++    return JavaScriptValue(runtime, expo_jsi.valueFromArrayBuffer(runtime.pointee, pointee))
    }
  
    // MARK: - Providing JavaScriptObject API
@@ -846,9 +938,15 @@ index 1339b7c..a9d18bf 100644
  
    /// Creates a BigInt from an existing JSI BigInt.
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptError.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptError.swift
-index 936aaa2..c8ba02f 100644
+index 936aaa2..5e50c3a 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptError.swift
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptError.swift
+@@ -1,4 +1,4 @@
+-internal import ExpoModulesJSI_Cxx
++public import ExpoModulesJSI_Cxx
+ internal import jsi
+ 
+ /// A Swift `Error` wrapping a JavaScript exception, used to throw to and from the JS world.
 @@ -12,7 +12,7 @@ internal import jsi
  ///   it may be caught on any thread, but reading its value or releasing it should happen on the
  ///   JavaScript thread while the runtime is alive.
@@ -863,7 +961,7 @@ index 936aaa2..c8ba02f 100644
      // be aliased. Once it becomes non-copyable, switch to `consuming` and move `pointee` straight
      // into the error to avoid this copy.
 -    self.pointee = expo.errorFromValue(runtime.pointee, facebook.jsi.Value(runtime.pointee, value.pointee))
-+    self.pointee = ExpoModulesJSI_Cxx.expo.errorFromValue(runtime.pointee, facebook.jsi.Value(runtime.pointee, value.pointee))
++    self.pointee = expo_jsi.errorFromValue(runtime.pointee, facebook.jsi.Value(runtime.pointee, value.pointee))
    }
  
    /// Creates a JavaScript error from a native error conforming to `JavaScriptThrowable`.
@@ -872,7 +970,7 @@ index 936aaa2..c8ba02f 100644
      // Attach the code property to the Error object when provided.
      if !error.code.isEmpty {
 -      let errorObject = JavaScriptValue(runtime, expo.valueFromError(runtime.pointee, pointee)).getObject()
-+      let errorObject = JavaScriptValue(runtime, ExpoModulesJSI_Cxx.expo.valueFromError(runtime.pointee, pointee)).getObject()
++      let errorObject = JavaScriptValue(runtime, expo_jsi.valueFromError(runtime.pointee, pointee)).getObject()
        errorObject.setProperty("code", value: error.code)
      }
    }
@@ -881,7 +979,7 @@ index 936aaa2..c8ba02f 100644
        FatalError.runtimeLost()
      }
 -    return JavaScriptValue(runtime, expo.valueFromError(runtime.pointee, pointee))
-+    return JavaScriptValue(runtime, ExpoModulesJSI_Cxx.expo.valueFromError(runtime.pointee, pointee))
++    return JavaScriptValue(runtime, expo_jsi.valueFromError(runtime.pointee, pointee))
    }
  
    internal func toJSError() -> facebook.jsi.JSError {
@@ -890,22 +988,26 @@ index 936aaa2..c8ba02f 100644
  }
  
 -/// Makes `expo.CppError` conform to Swift's `Error` protocol so it can be caught
-+/// Makes `ExpoModulesJSI_Cxx.expo.CppError` conform to Swift's `Error` protocol so it can be caught
++/// Makes `expo_jsi.CppError` conform to Swift's `Error` protocol so it can be caught
  /// with `try/catch`, and exposes its message as a native Swift `String`.
  ///
  /// The C++ `message` field is bridged to Swift as `_message` (a `std.string`)
  /// via the `SWIFT_NAME(_message)` annotation in `CppError.h`. This extension
  /// wraps it in a Swift `String` for cleaner call-site usage.
 -extension expo.CppError: Error {
-+extension ExpoModulesJSI_Cxx.expo.CppError: Error {
++extension expo_jsi.CppError: Error {
    public var message: String {
      return String(_getMessage())
    }
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptFunction.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptFunction.swift
-index 3ff84b8..27c8860 100644
+index 3ff84b8..dc9a002 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptFunction.swift
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptFunction.swift
-@@ -4,7 +4,7 @@ internal import ExpoModulesJSI_Cxx
+@@ -1,10 +1,10 @@
+ // Copyright 2025-present 650 Industries. All rights reserved.
+ 
+-internal import ExpoModulesJSI_Cxx
++public import ExpoModulesJSI_Cxx
  internal import jsi
  
  public struct JavaScriptFunction: JavaScriptType, ~Copyable {
@@ -919,7 +1021,7 @@ index 3ff84b8..27c8860 100644
        return JavaScriptValue(
          runtime,
 -        expo.callFunctionWithThis(runtime.pointee, pointee, this.pointee, arguments?.baseAddress, arguments?.count ?? 0)
-+        ExpoModulesJSI_Cxx.expo.callFunctionWithThis(runtime.pointee, pointee, this.pointee, arguments?.baseAddress, arguments?.count ?? 0)
++        expo_jsi.callFunctionWithThis(runtime.pointee, pointee, this.pointee, arguments?.baseAddress, arguments?.count ?? 0)
        )
      }
    }
@@ -928,7 +1030,7 @@ index 3ff84b8..27c8860 100644
      return try capturingCppErrors {
        return JavaScriptValue(
 -        runtime, expo.callFunction(runtime.pointee, pointee, arguments?.baseAddress, arguments?.count ?? 0))
-+        runtime, ExpoModulesJSI_Cxx.expo.callFunction(runtime.pointee, pointee, arguments?.baseAddress, arguments?.count ?? 0))
++        runtime, expo_jsi.callFunction(runtime.pointee, pointee, arguments?.baseAddress, arguments?.count ?? 0))
      }
    }
  
@@ -937,7 +1039,7 @@ index 3ff84b8..27c8860 100644
      }
      return try capturingCppErrors {
 -      let jsiResult = expo.callAsConstructor(runtime.pointee, pointee, arguments?.baseAddress, arguments?.count ?? 0)
-+      let jsiResult = ExpoModulesJSI_Cxx.expo.callAsConstructor(runtime.pointee, pointee, arguments?.baseAddress, arguments?.count ?? 0)
++      let jsiResult = expo_jsi.callAsConstructor(runtime.pointee, pointee, arguments?.baseAddress, arguments?.count ?? 0)
        return JavaScriptValue(runtime, jsiResult)
      }
    }
@@ -946,7 +1048,7 @@ index 3ff84b8..27c8860 100644
        FatalError.runtimeLost()
      }
 -    return JavaScriptValue(runtime, expo.valueFromFunction(jsiRuntime, pointee))
-+    return JavaScriptValue(runtime, ExpoModulesJSI_Cxx.expo.valueFromFunction(jsiRuntime, pointee))
++    return JavaScriptValue(runtime, expo_jsi.valueFromFunction(jsiRuntime, pointee))
    }
  
    /// Returns the function as a `facebook.jsi.Value` instance.
@@ -955,7 +1057,7 @@ index 3ff84b8..27c8860 100644
        FatalError.runtimeLost()
      }
 -    return expo.valueFromFunction(jsiRuntime, pointee)
-+    return ExpoModulesJSI_Cxx.expo.valueFromFunction(jsiRuntime, pointee)
++    return expo_jsi.valueFromFunction(jsiRuntime, pointee)
    }
  
    public func asObject() -> JavaScriptObject {
@@ -964,27 +1066,41 @@ index 3ff84b8..27c8860 100644
      }
      let jsiRuntime = runtime.pointee
 -    return JavaScriptObject(runtime, expo.valueFromFunction(jsiRuntime, pointee).getObject(jsiRuntime))
-+    return JavaScriptObject(runtime, ExpoModulesJSI_Cxx.expo.valueFromFunction(jsiRuntime, pointee).getObject(jsiRuntime))
++    return JavaScriptObject(runtime, expo_jsi.valueFromFunction(jsiRuntime, pointee).getObject(jsiRuntime))
    }
  }
  
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptMutableBuffer.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptMutableBuffer.swift
-index bb1684b..6ee871f 100644
+index bb1684b..79e5096 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptMutableBuffer.swift
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptMutableBuffer.swift
+@@ -1,6 +1,6 @@
+ // Copyright 2025-present 650 Industries. All rights reserved.
+ 
+-internal import ExpoModulesJSI_Cxx
++public import ExpoModulesJSI_Cxx
+ 
+ /// A borrowed native `MutableBuffer` backing a JavaScript `ArrayBuffer`.
+ ///
 @@ -19,6 +19,6 @@ public struct JavaScriptMutableBuffer: ~Copyable {
    }
  
    deinit {
 -    expo.releaseBorrowedBuffer(retainer)
-+    ExpoModulesJSI_Cxx.expo.releaseBorrowedBuffer(retainer)
++    expo_jsi.releaseBorrowedBuffer(retainer)
    }
  }
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptObject.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptObject.swift
-index 2b16337..edead98 100644
+index 2b16337..2f4c268 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptObject.swift
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptObject.swift
-@@ -6,7 +6,7 @@ internal import jsi
+@@ -1,12 +1,12 @@
+ // Copyright 2025-present 650 Industries. All rights reserved.
+ 
+-internal import ExpoModulesJSI_Cxx
++public import ExpoModulesJSI_Cxx
+ internal import jsi
+ 
  /// A Swift representation of a JavaScript object. Provides access to JavaScript object properties and methods,
  /// supporting property access, modification, enumeration, prototype manipulation, and function calling.
  public struct JavaScriptObject: JavaScriptType, Sendable, ~Copyable {
@@ -998,7 +1114,7 @@ index 2b16337..edead98 100644
        FatalError.runtimeLost()
      }
 -    return expo.isHostObject(runtime.pointee, pointee)
-+    return ExpoModulesJSI_Cxx.expo.isHostObject(runtime.pointee, pointee)
++    return expo_jsi.isHostObject(runtime.pointee, pointee)
    }
  
    public func isArrayBuffer() -> Bool {
@@ -1007,7 +1123,7 @@ index 2b16337..edead98 100644
      }
      // This specialization is to avoid copying the value; `asValue()` on `JavaScriptValue` needs to do a copy.
 -    expo.setProperty(
-+    ExpoModulesJSI_Cxx.expo.setProperty(
++    expo_jsi.setProperty(
        runtime.pointee,
        pointee,
        name.toJSIPropNameID(in: runtime.pointee),
@@ -1016,7 +1132,7 @@ index 2b16337..edead98 100644
      }
      let jsiValue = value.toJavaScriptValue(in: runtime).toJSIValue(in: runtime.pointee)
 -    expo.setProperty(runtime.pointee, pointee, name.toJSIPropNameID(in: runtime.pointee), jsiValue)
-+    ExpoModulesJSI_Cxx.expo.setProperty(runtime.pointee, pointee, name.toJSIPropNameID(in: runtime.pointee), jsiValue)
++    expo_jsi.setProperty(runtime.pointee, pointee, name.toJSIPropNameID(in: runtime.pointee), jsiValue)
    }
  
    internal func setProperty<T: JavaScriptRepresentable>(_ name: String, value: consuming T) where T: JSIRepresentable {
@@ -1025,7 +1141,7 @@ index 2b16337..edead98 100644
      }
      let jsiValue = value.toJSIValue(in: runtime.pointee)
 -    expo.setProperty(runtime.pointee, pointee, name.toJSIPropNameID(in: runtime.pointee), jsiValue)
-+    ExpoModulesJSI_Cxx.expo.setProperty(runtime.pointee, pointee, name.toJSIPropNameID(in: runtime.pointee), jsiValue)
++    expo_jsi.setProperty(runtime.pointee, pointee, name.toJSIPropNameID(in: runtime.pointee), jsiValue)
    }
  
    public func setProperty(_ name: String, _ object: consuming JavaScriptObject) {
@@ -1033,7 +1149,7 @@ index 2b16337..edead98 100644
        FatalError.runtimeLost()
      }
 -    expo.setProperty(
-+    ExpoModulesJSI_Cxx.expo.setProperty(
++    expo_jsi.setProperty(
        runtime.pointee,
        pointee,
        name.toJSIPropNameID(in: runtime.pointee),
@@ -1042,7 +1158,7 @@ index 2b16337..edead98 100644
        FatalError.runtimeLost()
      }
 -    return expo.hasNativeState(runtime.pointee, pointee)
-+    return ExpoModulesJSI_Cxx.expo.hasNativeState(runtime.pointee, pointee)
++    return expo_jsi.hasNativeState(runtime.pointee, pointee)
    }
  
    /// Returns the Swift `JavaScriptNativeState` wrapper attached to this object via
@@ -1051,7 +1167,7 @@ index 2b16337..edead98 100644
        FatalError.runtimeLost()
      }
 -    guard let cxxNativeState = expo.getExpoNativeState(runtime.pointee, pointee) else {
-+    guard let cxxNativeState = ExpoModulesJSI_Cxx.expo.getExpoNativeState(runtime.pointee, pointee) else {
++    guard let cxxNativeState = expo_jsi.getExpoNativeState(runtime.pointee, pointee) else {
        return nil
      }
      return T.from(cxx: cxxNativeState)
@@ -1060,7 +1176,7 @@ index 2b16337..edead98 100644
        FatalError.runtimeLost()
      }
 -    expo.setNativeState(runtime.pointee, self.pointee, nativeState.acquireShared())
-+    ExpoModulesJSI_Cxx.expo.setNativeState(runtime.pointee, self.pointee, nativeState.acquireShared())
++    expo_jsi.setNativeState(runtime.pointee, self.pointee, nativeState.acquireShared())
    }
  
    /// Unsets the native state of this object.
@@ -1069,14 +1185,20 @@ index 2b16337..edead98 100644
        FatalError.runtimeLost()
      }
 -    expo.unsetNativeState(runtime.pointee, pointee)
-+    ExpoModulesJSI_Cxx.expo.unsetNativeState(runtime.pointee, pointee)
++    expo_jsi.unsetNativeState(runtime.pointee, pointee)
    }
  
    // MARK: - Memory pressure
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptPromise.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptPromise.swift
-index 434c379..f119822 100644
+index 434c379..dede9a3 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptPromise.swift
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptPromise.swift
+@@ -1,4 +1,4 @@
+-internal import ExpoModulesJSI_Cxx
++public import ExpoModulesJSI_Cxx
+ internal import jsi
+ 
+ /// A Swift representation of a JavaScript Promise.
 @@ -10,7 +10,7 @@ internal import jsi
  public struct JavaScriptPromise: JavaScriptType, ~Copyable {
    private typealias PromiseContinuation = CheckedContinuation<JavaScriptValue.Ref, any Error>
@@ -1112,10 +1234,15 @@ index 434c379..f119822 100644
  
      // The promise and its two settle functions come from a JavaScript closure that returns all three
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptTypedArray.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptTypedArray.swift
-index 280c18a..8a6d532 100644
+index 280c18a..4c1d0d8 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptTypedArray.swift
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptTypedArray.swift
-@@ -8,7 +8,7 @@ internal import ExpoModulesJSI_Cxx
+@@ -4,11 +4,11 @@
+ // `Kind` enum cases mirror the JavaScript TypedArray constructor names verbatim
+ // (`Int8Array`, `Uint8ClampedArray`, etc.) and must not be lowercased.
+ 
+-internal import ExpoModulesJSI_Cxx
++public import ExpoModulesJSI_Cxx
  internal import jsi
  
  public struct JavaScriptTypedArray: ~Copyable {
@@ -1129,12 +1256,12 @@ index 280c18a..8a6d532 100644
    init(_ runtime: JavaScriptRuntime, _ object: consuming facebook.jsi.Object) {
      self.runtime = runtime
 -    self.kind = Kind(rawValue: Int(expo.getTypedArrayKind(runtime.pointee, object).rawValue))!
-+    self.kind = Kind(rawValue: Int(ExpoModulesJSI_Cxx.expo.getTypedArrayKind(runtime.pointee, object).rawValue))!
++    self.kind = Kind(rawValue: Int(expo_jsi.getTypedArrayKind(runtime.pointee, object).rawValue))!
      self.byteLength = Int(object.getProperty(runtime.pointee, "byteLength").getNumber())
      self.byteOffset = Int(object.getProperty(runtime.pointee, "byteOffset").getNumber())
      self.length = Int(object.getProperty(runtime.pointee, "length").getNumber())
 -    self.arrayBuffer = expo.getTypedArrayBuffer(runtime.pointee, object)
-+    self.arrayBuffer = ExpoModulesJSI_Cxx.expo.getTypedArrayBuffer(runtime.pointee, object)
++    self.arrayBuffer = expo_jsi.getTypedArrayBuffer(runtime.pointee, object)
      self.pointee = object
    }
  
@@ -1143,14 +1270,32 @@ index 280c18a..8a6d532 100644
        FatalError.runtimeLost()
      }
 -    return expo.arrayBufferData(runtime.pointee, arrayBuffer).advanced(by: byteOffset)
-+    return ExpoModulesJSI_Cxx.expo.arrayBufferData(runtime.pointee, arrayBuffer).advanced(by: byteOffset)
++    return expo_jsi.arrayBufferData(runtime.pointee, arrayBuffer).advanced(by: byteOffset)
    }
  
    // We need to redefine the C++ enum (see TypedArray.h) to expose it to Swift
+diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptUnownedValue.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptUnownedValue.swift
+index 1035269..0139a02 100644
+--- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptUnownedValue.swift
++++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptUnownedValue.swift
+@@ -1,6 +1,6 @@
+ // Copyright 2025-present 650 Industries. All rights reserved.
+ 
+-internal import ExpoModulesJSI_Cxx
++public import ExpoModulesJSI_Cxx
+ import Foundation
+ internal import jsi
+ 
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptValue.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptValue.swift
-index 75500be..1c37e37 100644
+index 75500be..aa02537 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptValue.swift
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/Values/JavaScriptValue.swift
+@@ -1,4 +1,4 @@
+-internal import ExpoModulesJSI_Cxx
++public import ExpoModulesJSI_Cxx
+ import Foundation
+ internal import jsi
+ 
 @@ -7,7 +7,7 @@ internal import jsi
  /// this one is a reference type so can be safely captured in closures, passed to other isolation context,
  /// and stored in containers that don't support non-copyable types etc.
@@ -1165,7 +1310,7 @@ index 75500be..1c37e37 100644
        FatalError.runtimeLost()
      }
 -    return pointee.isObject() && expo.isTypedArray(jsiRuntime, pointee.getObject(jsiRuntime))
-+    return pointee.isObject() && ExpoModulesJSI_Cxx.expo.isTypedArray(jsiRuntime, pointee.getObject(jsiRuntime))
++    return pointee.isObject() && expo_jsi.isTypedArray(jsiRuntime, pointee.getObject(jsiRuntime))
    }
  
    /// Checks whether the value is an `ArrayBuffer`.
@@ -1174,16 +1319,16 @@ index 75500be..1c37e37 100644
    internal func writeJSIValue(to slot: UnsafeMutablePointer<facebook.jsi.Value>) {
      if pointee.isUndefined() {
 -      expo.emplaceUndefined(slot)
-+      ExpoModulesJSI_Cxx.expo.emplaceUndefined(slot)
++      expo_jsi.emplaceUndefined(slot)
      } else if pointee.isNumber() {
 -      expo.emplaceNumber(slot, pointee.getNumber())
-+      ExpoModulesJSI_Cxx.expo.emplaceNumber(slot, pointee.getNumber())
++      expo_jsi.emplaceNumber(slot, pointee.getNumber())
      } else if pointee.isBool() {
 -      expo.emplaceBool(slot, pointee.getBool())
-+      ExpoModulesJSI_Cxx.expo.emplaceBool(slot, pointee.getBool())
++      expo_jsi.emplaceBool(slot, pointee.getBool())
      } else if pointee.isNull() {
 -      expo.emplaceNull(slot)
-+      ExpoModulesJSI_Cxx.expo.emplaceNull(slot)
++      expo_jsi.emplaceNull(slot)
      } else {
        slot.pointee = asJSIValue()
      }
@@ -1201,19 +1346,20 @@ index 9fffe5e..8cc1f18 100644
  
    /// Initializes a weak object with the underlying JSI weak object.
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Utilities/ErrorHandling.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Utilities/ErrorHandling.swift
-index a2a156d..1417cd4 100644
+index a2a156d..da51752 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Utilities/ErrorHandling.swift
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Utilities/ErrorHandling.swift
 @@ -1,9 +1,9 @@
- internal import ExpoModulesJSI_Cxx
+-internal import ExpoModulesJSI_Cxx
++public import ExpoModulesJSI_Cxx
  internal import jsi
  
 -/// Gets the recently thrown `expo.CppError` that was not handled by Swift yet.
 -private func getCurrentCppError() -> expo.CppError? {
 -  if let current = expo.CppError.getCurrent() {
-+/// Gets the recently thrown `ExpoModulesJSI_Cxx.expo.CppError` that was not handled by Swift yet.
-+private func getCurrentCppError() -> ExpoModulesJSI_Cxx.expo.CppError? {
-+  if let current = ExpoModulesJSI_Cxx.expo.CppError.getCurrent() {
++/// Gets the recently thrown `expo_jsi.CppError` that was not handled by Swift yet.
++private func getCurrentCppError() -> expo_jsi.CppError? {
++  if let current = expo_jsi.CppError.getCurrent() {
      return current.move()
    }
    return nil
@@ -1222,35 +1368,43 @@ index a2a156d..1417cd4 100644
      // Relay the wrapped `jsi::JSError` directly so the thrown value reaches JS as-is, which may be
      // an arbitrary value rather than an `Error` instance.
 -    expo.CppError.setCurrent(jsError.toJSError())
-+    ExpoModulesJSI_Cxx.expo.CppError.setCurrent(jsError.toJSError())
++    expo_jsi.CppError.setCurrent(jsError.toJSError())
    case let throwable as JavaScriptThrowable:
 -    expo.CppError.setCurrent(JavaScriptError(runtime, from: throwable).toJSError())
 -  case let cppError as expo.CppError:
-+    ExpoModulesJSI_Cxx.expo.CppError.setCurrent(JavaScriptError(runtime, from: throwable).toJSError())
-+  case let cppError as ExpoModulesJSI_Cxx.expo.CppError:
++    expo_jsi.CppError.setCurrent(JavaScriptError(runtime, from: throwable).toJSError())
++  case let cppError as expo_jsi.CppError:
      // Re-thrown by `capturingCppErrors` when nested JSI work raised a JS error; relay
      // the original so its `jsi::JSError` (with stack, code, custom properties) survives.
 -    expo.CppError.setCurrent(cppError)
-+    ExpoModulesJSI_Cxx.expo.CppError.setCurrent(cppError)
++    expo_jsi.CppError.setCurrent(cppError)
    default:
 -    expo.CppError.setCurrent(runtime.pointee, std.string(String(describing: error)))
-+    ExpoModulesJSI_Cxx.expo.CppError.setCurrent(runtime.pointee, std.string(String(describing: error)))
++    expo_jsi.CppError.setCurrent(runtime.pointee, std.string(String(describing: error)))
    }
  }
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Utilities/String+JSI.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Utilities/String+JSI.swift
-index e998e8c..8448234 100644
+index e998e8c..593102b 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Utilities/String+JSI.swift
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Utilities/String+JSI.swift
+@@ -1,6 +1,6 @@
+ // Copyright 2026-present 650 Industries. All rights reserved.
+ 
+-internal import ExpoModulesJSI_Cxx
++public import ExpoModulesJSI_Cxx
+ import Foundation
+ internal import jsi
+ 
 @@ -17,10 +17,10 @@ extension String {
    internal init(jsiString: borrowing facebook.jsi.String, in runtime: facebook.jsi.IRuntime) {
      var result = ""
      withUnsafeMutablePointer(to: &result) { resultPtr in
 -      // Goes through the `expo.getStringData` wrapper rather than the runtime method: on RN older
-+      // Goes through the `ExpoModulesJSI_Cxx.expo.getStringData` wrapper rather than the runtime method: on RN older
++      // Goes through the `expo_jsi.getStringData` wrapper rather than the runtime method: on RN older
        // than 0.86 (e.g. react-native-macos 0.81) `Runtime::getStringData` is protected, so Swift
        // cannot call it directly.
 -      expo.getStringData(runtime, jsiString, UnsafeMutableRawPointer(resultPtr), appendEngineStringChunk)
-+      ExpoModulesJSI_Cxx.expo.getStringData(runtime, jsiString, UnsafeMutableRawPointer(resultPtr), appendEngineStringChunk)
++      expo_jsi.getStringData(runtime, jsiString, UnsafeMutableRawPointer(resultPtr), appendEngineStringChunk)
      }
      self = result
    }
