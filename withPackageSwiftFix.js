@@ -8,24 +8,33 @@ module.exports = function withPackageSwiftFix(config) {
     async (config) => {
       const podfilePath = path.join(config.modRequest.platformProjectRoot, 'Podfile');
       let podfile = fs.readFileSync(podfilePath, 'utf8');
-      
+
+      // Inject a Ruby script at the end of post_install to fix the Package.swift path with an ABSOLUTE path
       const fixScript = `
-  # FIX SPM PATH
+  # Fix React-GeneratedCode SPM path for EAS local builds
   package_swift = File.join(__dir__, 'build/generated/ios/Package.swift')
   if File.exist?(package_swift)
     text = File.read(package_swift)
-    text = text.gsub(/path:\\s*"[^"]*node_modules\\/react-native"/, 'path: "../../../../node_modules/react-native"')
+    absolute_rn_path = File.expand_path('../node_modules/react-native', __dir__)
+    text = text.gsub(/path:\\s*"[^"]*node_modules\\/react-native"/, "path: \\"#{absolute_rn_path}\\"")
     File.write(package_swift, text)
+    puts "✅ Fixed React-GeneratedCode path to absolute: #{absolute_rn_path}"
   end
 `;
 
-      if (!podfile.includes('# FIX SPM PATH')) {
+      if (podfile.includes('post_install do |installer|')) {
         podfile = podfile.replace(
-          /post_install do \|installer\|/,
-          `post_install do |installer|\n${fixScript}`
+          /post_install do \|installer\|([\s\S]*?)end\n/g,
+          (match, p1) => {
+            if (p1.includes('Fix React-GeneratedCode SPM path')) {
+              return match; // Already injected
+            }
+            return `post_install do |installer|${p1}${fixScript}end\n`;
+          }
         );
-        fs.writeFileSync(podfilePath, podfile);
       }
+
+      fs.writeFileSync(podfilePath, podfile);
       return config;
     },
   ]);
