@@ -40,6 +40,9 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: EAS_NO_VCS=1 eas build --platform ios --local --non-interactive
+      - name: Dump Xcode Logs
+        if: failure()
+        run: find /var/folders /tmp -name "*.log" -type f -exec tail -n 200 {} +
 
       - name: Submit to TestFlight
         env:
