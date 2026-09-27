@@ -32,7 +32,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "postinstall": ""
+    "postinstall": "",
+    "eas-build-pre-xcodebuild": "sed -i '' -E 's|path: \"[^\"]*node_modules/react-native\"|path: \"../../../../node_modules/react-native\"|g' ios/build/generated/ios/Package.swift || true"
   },
   "private": true,
   "devDependencies": {
