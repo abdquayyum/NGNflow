@@ -10,7 +10,7 @@ module.exports = function withCustomPodfile(config) {
       let contents = fs.readFileSync(file, 'utf-8');
       contents = contents.replace(
         'post_install do |installer|',
-        `post_install do |installer|\n    installer.pods_project.targets.each do |target|\n      target.build_configurations.each do |config|\n        config.build_settings['SWIFT_STRICT_CONCURRENCY'] = 'minimal'\n        config.build_settings['SWIFT_COMPILATION_MODE'] = 'wholemodule'\n      end\n    end`
+        `post_install do |installer|\n    installer.pods_project.targets.each do |target|\n      target.build_configurations.each do |config|\n        config.build_settings['SWIFT_VERSION'] = '5.0'\n        config.build_settings['SWIFT_STRICT_CONCURRENCY'] = 'minimal'\n        config.build_settings['SWIFT_COMPILATION_MODE'] = 'wholemodule'\n        config.build_settings['SWIFT_TREAT_WARNINGS_AS_ERRORS'] = 'NO'\n        config.build_settings['GCC_TREAT_WARNINGS_AS_ERRORS'] = 'NO'\n      end\n    end`
       );
       fs.writeFileSync(file, contents);
       return config;
