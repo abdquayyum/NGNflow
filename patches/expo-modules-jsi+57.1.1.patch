@@ -566,7 +566,7 @@ index d43cdd5..d2b02cf 100644
  
    /// Creates a PropNameID from existing `facebook.jsi.PropNameID`.
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift
-index 3d796ee..7256dba 100644
+index 3d796ee..c17c24e 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift
 @@ -1,6 +1,6 @@
@@ -747,6 +747,15 @@ index 3d796ee..7256dba 100644
  
      return JavaScriptFunction(self, hostFunction)
    }
+@@ -400,7 +400,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
+   public typealias AsyncFunctionClosure =
+     @JavaScriptActor (
+       _ this: JavaScriptValue,
+-      _ arguments: consuming JavaScriptValuesBuffer,
++      _ arguments: consuming JavaScriptValuesBuffer
+     ) async throws -> JavaScriptValue
+ 
+   /// Creates an asynchronous host function that runs given block when it's called.
 @@ -445,7 +445,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
      priority: SchedulerPriority = .normal,
      @_implicitSelfCapture _ closure: @escaping @JavaScriptActor () -> sending Void
