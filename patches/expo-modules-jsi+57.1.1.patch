@@ -112,7 +112,7 @@ index 70dfe21..a5d65e4 100644
  
  #endif // __cplusplus
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostObjectCallbacks.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostObjectCallbacks.h
-index b8b80bb..042ed15 100644
+index b8b80bb..cf3f68b 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostObjectCallbacks.h
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostObjectCallbacks.h
 @@ -7,7 +7,7 @@
@@ -124,7 +124,7 @@ index b8b80bb..042ed15 100644
  
  /**
   Holds a pointer to `HostObjectContext` in Swift and host object's callbacks.
-@@ -70,6 +70,6 @@ private:
+@@ -70,6 +70,12 @@ private:
  
  } SWIFT_NONCOPYABLE; // class HostObjectCallbacks
  
@@ -132,6 +132,12 @@ index b8b80bb..042ed15 100644
 +} // namespace expo_jsi
  
  #endif // __cplusplus
++
++namespace expo_jsi {
++  inline void pushPropNameId(HostObjectCallbacks::PropNameIds& vector, facebook::jsi::PropNameID propNameId) {
++    vector.push_back(std::move(propNameId));
++  }
++}
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/JSIUtils.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/JSIUtils.h
 index 7278abd..cfeb2a0 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/JSIUtils.h
@@ -609,7 +615,7 @@ index d43cdd5..d2b02cf 100644
  
    /// Creates a PropNameID from existing `facebook.jsi.PropNameID`.
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift
-index 3d796ee..02ddf3b 100644
+index 3d796ee..27605aa 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift
 @@ -1,6 +1,6 @@
@@ -715,7 +721,7 @@ index 3d796ee..02ddf3b 100644
        let context = Unmanaged<HostObjectContext>.fromOpaque(context).takeUnretainedValue()
        // `IRuntime` is an immortal reference, so reading it through the guaranteed wrapper
        // reference costs no reference counting here either.
-@@ -233,13 +233,13 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
+@@ -233,13 +233,12 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
        let propertyNames: [String] = JavaScriptActor.assumeIsolated {
          return context.getPropertyNames()
        }
@@ -725,13 +731,13 @@ index 3d796ee..02ddf3b 100644
        vector.reserve(propertyNames.count)
  
        for propertyName in propertyNames {
-         let propNameId = facebook.jsi.PropNameID.forUtf8(iRuntime, std.string(propertyName))
+-        let propNameId = facebook.jsi.PropNameID.forUtf8(iRuntime, std.string(propertyName))
 -        vector.push_back(consuming: propNameId)
-+        vector.push_back(consume propNameId)
++        expo_jsi.pushPropNameId(&vector, facebook.jsi.PropNameID.forUtf8(iRuntime, std.string(propertyName)))
        }
        return vector
      }
-@@ -257,9 +257,9 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
+@@ -257,9 +256,9 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
        (@convention(c) (UnsafeMutableRawPointer, UnsafePointer<CChar>, UnsafeMutableRawPointer) -> Bool)? = setter
      // Pass a null setter to C++ when the Swift setter is nil so that JS assignment
      // raises a `jsi::JSError` directly, without crossing the Swift boundary.
@@ -743,7 +749,7 @@ index 3d796ee..02ddf3b 100644
  
      return JavaScriptObject(self, hostObject)
    }
-@@ -268,7 +268,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
+@@ -268,7 +267,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
  
    /// Creates a new array buffer of the given size with zero-initialized memory.
    public func createArrayBuffer(size: Int) -> JavaScriptArrayBuffer {
@@ -752,7 +758,7 @@ index 3d796ee..02ddf3b 100644
      return JavaScriptArrayBuffer(self, jsiArrayBuffer)
    }
  
-@@ -278,7 +278,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
+@@ -278,7 +277,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
      -> JavaScriptArrayBuffer
    {
      let context = Unmanaged.passRetained(CleanupContext(cleanup)).toOpaque()
@@ -761,7 +767,7 @@ index 3d796ee..02ddf3b 100644
        Unmanaged<CleanupContext>.fromOpaque(context).release()
      }
      return JavaScriptArrayBuffer(self, jsiArrayBuffer)
-@@ -311,7 +311,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
+@@ -311,7 +310,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
      let nativeConstructorKey = "__native_constructor__"
  
      // Validate that the name is a valid JS identifier to prevent code injection via eval.
@@ -770,7 +776,7 @@ index 3d796ee..02ddf3b 100644
        throw InvalidIdentifierError(identifier: name)
      }
  
-@@ -347,7 +347,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
+@@ -347,7 +346,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
    @JavaScriptActor
    public func createFunction(_ name: String, _ function: sending @escaping SyncFunctionClosure) -> JavaScriptFunction {
      let closure = createFunctionClosure(runtime: self, name: name, function)
@@ -779,7 +785,7 @@ index 3d796ee..02ddf3b 100644
  
      return JavaScriptFunction(self, hostFunction)
    }
-@@ -358,7 +358,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
+@@ -358,7 +357,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
    @JavaScriptActor
    public func createFunction(_ function: sending @escaping SyncFunctionClosure) -> JavaScriptFunction {
      let closure = createFunctionClosure(runtime: self, name: nil, function)
@@ -788,7 +794,7 @@ index 3d796ee..02ddf3b 100644
  
      return JavaScriptFunction(self, hostFunction)
    }
-@@ -390,7 +390,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
+@@ -390,7 +389,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
      _ name: String, _ function: sending @escaping UnownedThisSyncFunctionClosure
    ) -> JavaScriptFunction {
      let closure = createFunctionClosure(runtime: self, name: name, function)
@@ -797,7 +803,7 @@ index 3d796ee..02ddf3b 100644
  
      return JavaScriptFunction(self, hostFunction)
    }
-@@ -400,7 +400,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
+@@ -400,7 +399,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
    public typealias AsyncFunctionClosure =
      @JavaScriptActor (
        _ this: JavaScriptValue,
@@ -806,7 +812,7 @@ index 3d796ee..02ddf3b 100644
      ) async throws -> JavaScriptValue
  
    /// Creates an asynchronous host function that runs given block when it's called.
-@@ -445,7 +445,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
+@@ -445,7 +444,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
      priority: SchedulerPriority = .normal,
      @_implicitSelfCapture _ closure: @escaping @JavaScriptActor () -> sending Void
    ) {
@@ -815,7 +821,7 @@ index 3d796ee..02ddf3b 100644
      scheduler.scheduleTask(cxxPriority) {
        JavaScriptActor.assumeIsolated(closure)
      }
-@@ -614,14 +614,14 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
+@@ -614,14 +613,14 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
    @discardableResult
    @JavaScriptActor
    public func eval(label: String? = nil, _ source: String) throws -> JavaScriptValue {
@@ -833,7 +839,7 @@ index 3d796ee..02ddf3b 100644
        throw ScriptEvaluationError(message: error.message)
      }
    }
-@@ -662,7 +662,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
+@@ -662,7 +661,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
    ///   Defaults to the calling function's name.
    @JavaScriptActor
    public func collectGarbage(cause: String = #function) {
@@ -842,7 +848,7 @@ index 3d796ee..02ddf3b 100644
    }
  
    // MARK: - Equatable
-@@ -755,7 +755,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
+@@ -755,7 +754,7 @@ open class JavaScriptRuntime: Equatable, Identifiable, @unchecked Sendable {
  
  private func createFunctionClosure(
    runtime: JavaScriptRuntime, name: String? = nil, _ closure: @escaping JavaScriptRuntime.SyncFunctionClosure
@@ -851,7 +857,7 @@ index 3d796ee..02ddf3b 100644
    let context = Unmanaged.passRetained(HostFunctionContext(runtime: runtime, name: name, closure)).toOpaque()
  
    func call(
-@@ -796,13 +796,13 @@ private func createFunctionClosure(
+@@ -796,13 +795,13 @@ private func createFunctionClosure(
      Unmanaged<HostFunctionContext>.fromOpaque(context).release()
    }
  
@@ -867,7 +873,7 @@ index 3d796ee..02ddf3b 100644
    let context = Unmanaged.passRetained(UnownedThisHostFunctionContext(runtime: runtime, name: name, closure)).toOpaque()
  
    func call(
-@@ -838,7 +838,7 @@ private func createFunctionClosure(
+@@ -838,7 +837,7 @@ private func createFunctionClosure(
      Unmanaged<UnownedThisHostFunctionContext>.fromOpaque(context).release()
    }
  
