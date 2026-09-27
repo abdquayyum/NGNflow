@@ -34,7 +34,7 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Build for iOS (Local on Runner)
-        run: EAS_NO_VCS=1 eas build --platform ios --local --non-interactive
+        run: EAS_LOCAL_BUILD_SKIP_CLEANUP=1 EAS_NO_VCS=1 eas build --platform ios --local --non-interactive
         
       - name: Dump Xcode Logs
         if: failure()
