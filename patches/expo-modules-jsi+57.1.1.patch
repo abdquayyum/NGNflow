@@ -66,7 +66,7 @@ index fef54a0..4c9c000 100644
 -} // namespace expo
 +} // namespace expo_jsi
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostFunctionClosure.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostFunctionClosure.h
-index 8d5b594..6289496 100644
+index 8d5b594..82165e5 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostFunctionClosure.h
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostFunctionClosure.h
 @@ -5,7 +5,7 @@
@@ -78,21 +78,18 @@ index 8d5b594..6289496 100644
  
  /**
   Holds a pointer to a closure in Swift that provides host function's implementation.
-@@ -19,7 +19,7 @@ public:
-   // through the return value spares the caller a thread-local read on every successful call.
-   using Closure = bool(Context context, const facebook::jsi::Value *_Nonnull thisValue, const facebook::jsi::Value *_Nonnull args, size_t count, facebook::jsi::Value *_Nonnull result);
- 
--  explicit HostFunctionClosure(Context context, Closure closure, Deallocator deallocator) : RetainedSwiftPointer(context, deallocator), _closure(closure) {};
-+  SWIFT_RETURNS_RETAINED explicit HostFunctionClosure(Context context, Closure closure, Deallocator deallocator) : RetainedSwiftPointer(context, deallocator), _closure(closure) {};
- 
-   virtual ~HostFunctionClosure() {
-     _deallocator(_context);
-@@ -37,4 +37,4 @@ private:
+@@ -37,4 +37,10 @@ private:
  
  } SWIFT_IMMORTAL_REFERENCE; // class HostFunctionClosure
  
 -} // namespace expo
 +} // namespace expo_jsi
++
++namespace expo_jsi {
++  inline HostFunctionClosure* createHostFunctionClosure(HostFunctionClosure::Context context, HostFunctionClosure::Closure closure, HostFunctionClosure::Deallocator deallocator) {
++    return new HostFunctionClosure(context, closure, deallocator);
++  }
++}
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostObject.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostObject.h
 index 70dfe21..a5d65e4 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/HostObject.h
@@ -352,24 +349,37 @@ index 39611db..57b76bd 100644
 -} // namespace expo
 +} // namespace expo_jsi
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h
-index 6115e87..d664b34 100644
+index 6115e87..2677c29 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h
-@@ -5,8 +5,12 @@
+@@ -5,7 +5,7 @@
  #include <atomic>
  #include <swift/bridging>
  
 -namespace expo {
- 
-+namespace expo_jsi { class RuntimeScheduler; }
-+inline void retainRuntimeScheduler(expo_jsi::RuntimeScheduler *scheduler);
-+inline void releaseRuntimeScheduler(expo_jsi::RuntimeScheduler *scheduler);
-+
 +namespace expo_jsi {
+ 
  /**
   Wrapper around React Native's RuntimeScheduler. The native scheduler reference
-  and dispatch trampoline are supplied by the host (e.g. ExpoReactNativeFactory)
-@@ -89,15 +93,15 @@ public:
+@@ -50,7 +50,7 @@ public:
+    `scheduleTask` dispatches through `fn`, which the host implements against
+    the real react::RuntimeScheduler.
+    */
+-  SWIFT_RETURNS_RETAINED RuntimeScheduler(void *scheduler, ScheduleFn fn) noexcept
++  RuntimeScheduler(void *scheduler, ScheduleFn fn) noexcept
+       : nativeScheduler(scheduler), scheduleFn(fn) {}
+ 
+   /**
+@@ -58,7 +58,7 @@ public:
+    caller's thread — intended for standalone runtimes (e.g. tests) that have
+    no React scheduler.
+    */
+-  SWIFT_RETURNS_RETAINED RuntimeScheduler() {}
++  RuntimeScheduler() {}
+ 
+   RuntimeScheduler(const RuntimeScheduler &) = delete;
+ 
+@@ -89,16 +89,25 @@ public:
    }
  } SWIFT_SHARED_REFERENCE(retainRuntimeScheduler, releaseRuntimeScheduler);
  
@@ -388,6 +398,16 @@ index 6115e87..d664b34 100644
    scheduler->release();
  }
  
+ #endif // __cplusplus
++
++namespace expo_jsi {
++  inline RuntimeScheduler* createRuntimeScheduler(void *scheduler, RuntimeScheduler::ScheduleFn fn) {
++    return new RuntimeScheduler(scheduler, fn);
++  }
++  inline RuntimeScheduler* createRuntimeScheduler() {
++    return new RuntimeScheduler();
++  }
++}
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/TypedArray.h b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/TypedArray.h
 index 60e99b4..6ba2432 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/TypedArray.h
@@ -562,7 +582,7 @@ index d43cdd5..d2b02cf 100644
  
    /// Creates a PropNameID from existing `facebook.jsi.PropNameID`.
 diff --git a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift
-index 3d796ee..5ec029f 100644
+index 3d796ee..fde107a 100644
 --- a/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift
 +++ b/node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Runtime/JavaScriptRuntime.swift
 @@ -1,6 +1,6 @@
@@ -598,7 +618,7 @@ index 3d796ee..5ec029f 100644
 -    self.pointee = expo.iruntime(runtime)
 -    self.scheduler = expo.RuntimeScheduler()
 +    self.pointee = expo_jsi.iruntime(runtime)
-+    self.scheduler = expo_jsi.RuntimeScheduler()
++    self.scheduler = expo_jsi.createRuntimeScheduler()
      self.ownsRuntime = false
      installLongLivedObjectsTeardown()
    }
@@ -612,7 +632,7 @@ index 3d796ee..5ec029f 100644
 -    self.pointee = expo.iruntime(runtime)
 -    self.scheduler = expo.RuntimeScheduler()
 +    self.pointee = expo_jsi.iruntime(runtime)
-+    self.scheduler = expo_jsi.RuntimeScheduler()
++    self.scheduler = expo_jsi.createRuntimeScheduler()
      self.ownsRuntime = true
      installLongLivedObjectsTeardown()
    }
@@ -623,7 +643,7 @@ index 3d796ee..5ec029f 100644
 -    self.pointee = expo.iruntime(runtime)
 -    self.scheduler = expo.RuntimeScheduler()
 +    self.pointee = expo_jsi.iruntime(runtime)
-+    self.scheduler = expo_jsi.RuntimeScheduler()
++    self.scheduler = expo_jsi.createRuntimeScheduler()
      self.ownsRuntime = false
      installLongLivedObjectsTeardown()
    }
@@ -637,7 +657,7 @@ index 3d796ee..5ec029f 100644
 -    self.pointee = expo.iruntime(runtime)
 -    self.scheduler = expo.RuntimeScheduler(scheduler, fn)
 +    self.pointee = expo_jsi.iruntime(runtime)
-+    self.scheduler = expo_jsi.RuntimeScheduler(scheduler, fn)
++    self.scheduler = expo_jsi.createRuntimeScheduler(scheduler, fn)
      self.ownsRuntime = false
      installLongLivedObjectsTeardown()
    }
@@ -809,7 +829,7 @@ index 3d796ee..5ec029f 100644
    }
  
 -  return expo.HostFunctionClosure(context, call, deallocate)
-+  return expo_jsi.HostFunctionClosure(context, call, deallocate)
++  return expo_jsi.createHostFunctionClosure(context, call, deallocate)
  }
  
  private func createFunctionClosure(
@@ -825,7 +845,7 @@ index 3d796ee..5ec029f 100644
    }
  
 -  return expo.HostFunctionClosure(context, call, deallocate)
-+  return expo_jsi.HostFunctionClosure(context, call, deallocate)
++  return expo_jsi.createHostFunctionClosure(context, call, deallocate)
  }
  
  // MARK: - Errors
