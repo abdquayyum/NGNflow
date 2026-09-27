@@ -32,7 +32,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "postinstall": "sed -i '' 's/SWIFT_RETURNS_RETAINED //g' node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h || true && sed -i '' 's/raise \"Please upgrade XCode\"/# raise \"Please upgrade XCode\"/g' node_modules/react-native/scripts/cocoapods/utils.rb || true && find node_modules -name 'Package.swift' -exec sed -i '' 's/swift-tools-version: 6.[0-9]/swift-tools-version: 5.9/g' {} + || true && find node_modules -name 'Package.swift.template' -exec sed -i '' 's/swift-tools-version: 6.[0-9]/swift-tools-version: 5.9/g' {} + || true && find node_modules -name 'Package.swift' -exec sed -i '' 's/swiftLanguageModes: \\[.v6\\]/swiftLanguageVersions: \\[.v5\\]/g' {} + || true"
+    "postinstall": "sed -i '' 's/SWIFT_RETURNS_RETAINED //g' node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h || true && sed -i '' 's/raise \"Please upgrade XCode\"/# raise \"Please upgrade XCode\"/g' node_modules/react-native/scripts/cocoapods/utils.rb || true && find node_modules -name 'Package.swift' -exec sed -i '' 's/swift-tools-version: 6.[0-9]/swift-tools-version: 5.9/g' {} + || true && find node_modules -name 'Package.swift.template' -exec sed -i '' 's/swift-tools-version: 6.[0-9]/swift-tools-version: 5.9/g' {} + || true && find node_modules -name 'Package.swift' -exec sed -i '' 's/swiftLanguageModes: \\[.v6\\]/swiftLanguageVersions: \\[.v5\\]/g' {} + || true && find node_modules -name 'Package.swift' -exec perl -0777 -pi -e 's/,\\s*\\)/)/g' {} + || true && find node_modules -name 'Package.swift' -exec perl -0777 -pi -e 's/,\\s*\\]/]/g' {} + || true"
   },
   "private": true,
   "devDependencies": {
