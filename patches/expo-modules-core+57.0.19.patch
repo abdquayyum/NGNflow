@@ -10,6 +10,19 @@ index 2b5d405..7c0ab52 100644
      'CLANG_CXX_LANGUAGE_STANDARD' => 'c++20',
      'SWIFT_COMPILATION_MODE' => 'wholemodule',
      'OTHER_SWIFT_FLAGS' => "$(inherited) #{new_arch_enabled ? new_arch_compiler_flags : ''}",
+diff --git a/node_modules/expo-modules-core/common/cpp/EventEmitter.h b/node_modules/expo-modules-core/common/cpp/EventEmitter.h
+index 1d01dc5..fedd191 100644
+--- a/node_modules/expo-modules-core/common/cpp/EventEmitter.h
++++ b/node_modules/expo-modules-core/common/cpp/EventEmitter.h
+@@ -80,7 +80,7 @@ private:
+ // the native state inherits directly from `jsi::NativeState`; the context args
+ // passed to the constructor are ignored there.
+ #if __has_include(<ExpoModulesJSI/NativeState.h>)
+-using NativeStateBase = expo::NativeState;
++using NativeStateBase = expo_jsi::NativeState;
+ #else
+ using NativeStateBase = facebook::jsi::NativeState;
+ #endif
 diff --git a/node_modules/expo-modules-core/ios/Core/Events/EventEmitter.swift b/node_modules/expo-modules-core/ios/Core/Events/EventEmitter.swift
 index 3046568..410b894 100644
 --- a/node_modules/expo-modules-core/ios/Core/Events/EventEmitter.swift
