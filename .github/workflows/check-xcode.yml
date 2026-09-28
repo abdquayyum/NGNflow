@@ -1,0 +1,13 @@
+name: Check Xcode Versions
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  check-xcode:
+    runs-on: macos-latest
+    steps:
+      - name: List Xcode versions
+        run: ls -la /Applications/ | grep Xcode
