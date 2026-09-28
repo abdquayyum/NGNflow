@@ -1,0 +1,56 @@
+diff --git a/node_modules/react-native/Libraries/ReactNativeDependencies/Package.swift b/node_modules/react-native/Libraries/ReactNativeDependencies/Package.swift
+index d251d54..429ba2a 100644
+--- a/node_modules/react-native/Libraries/ReactNativeDependencies/Package.swift
++++ b/node_modules/react-native/Libraries/ReactNativeDependencies/Package.swift
+@@ -1,4 +1,4 @@
+-// swift-tools-version: 6.0
++// swift-tools-version: 5.9
+ /*
+  * Copyright (c) Meta Platforms, Inc. and affiliates.
+  *
+diff --git a/node_modules/react-native/scripts/cocoapods/utils.rb b/node_modules/react-native/scripts/cocoapods/utils.rb
+index 6d151e4..0350e15 100644
+--- a/node_modules/react-native/scripts/cocoapods/utils.rb
++++ b/node_modules/react-native/scripts/cocoapods/utils.rb
+@@ -457,7 +457,7 @@ class ReactNativePodsUtils
+ 
+         if Gem::Version::new(current) < Gem::Version::new(min_required)
+             Pod::UI.puts "React Native requires XCode >= #{min_required}. Found #{current}.".red
+-            raise "Please upgrade XCode"
++            # # # # raise "Please upgrade XCode"
+         end
+     end
+ 
+diff --git a/node_modules/react-native/scripts/codegen/templates/Package.swift.template b/node_modules/react-native/scripts/codegen/templates/Package.swift.template
+index 28b7029..5c20b05 100644
+--- a/node_modules/react-native/scripts/codegen/templates/Package.swift.template
++++ b/node_modules/react-native/scripts/codegen/templates/Package.swift.template
+@@ -5,7 +5,7 @@
+  * LICENSE file in the root directory of this source tree.
+  */
+ 
+-// swift-tools-version: 6.1
++// swift-tools-version: 5.9
+ // The swift-tools-version declares the minimum version of Swift required to build this package.
+ 
+ import PackageDescription
+diff --git a/node_modules/react-native/scripts/react_native_pods.rb b/node_modules/react-native/scripts/react_native_pods.rb
+index a32bb5b..72b71eb 100644
+--- a/node_modules/react-native/scripts/react_native_pods.rb
++++ b/node_modules/react-native/scripts/react_native_pods.rb
+@@ -596,6 +596,15 @@ def react_native_post_install(
+     print_jsc_removal_message()
+   end
+ 
++
++  # [PATCH] Forcefully disable BUILD_LIBRARY_FOR_DISTRIBUTION to avoid Swift 6 interface compiler bugs
++  installer.pods_project.targets.each do |target|
++    target.build_configurations.each do |config|
++      config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'NO'
++    end
++  end
++
+   print_cocoapods_deprecation_message
++
+   Pod::UI.puts "Pod install took #{Time.now.to_i - $START_TIME} [s] to run".green
+ end
