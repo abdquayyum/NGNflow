@@ -35,10 +35,10 @@ index 28b7029..5c20b05 100644
  
  import PackageDescription
 diff --git a/node_modules/react-native/scripts/react_native_pods.rb b/node_modules/react-native/scripts/react_native_pods.rb
-index a32bb5b..e3b2a0e 100644
+index a32bb5b..6b727b2 100644
 --- a/node_modules/react-native/scripts/react_native_pods.rb
 +++ b/node_modules/react-native/scripts/react_native_pods.rb
-@@ -596,6 +596,27 @@ def react_native_post_install(
+@@ -596,6 +596,26 @@ def react_native_post_install(
      print_jsc_removal_message()
    end
  
@@ -57,7 +57,6 @@ index a32bb5b..e3b2a0e 100644
 +        flags = flags.split(' ')
 +      end
 +      flags << '-strict-concurrency=minimal' unless flags.include?('-strict-concurrency=minimal')
-+      flags << '-Wno-error' unless flags.include?('-Wno-error')
 +      config.build_settings['OTHER_SWIFT_FLAGS'] = flags.join(' ')
 +    end
 +  end
