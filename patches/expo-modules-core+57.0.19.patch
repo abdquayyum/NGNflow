@@ -45,11 +45,43 @@ index 00ed407..ddb1765 100644
  
    // `@unchecked` because `SharedObjectNativeState` isn't `Sendable` (its JSI base class isn't), yet a
    // value escapes `withLock` whenever `get`/the lookups return it. Access is always serialized through
+diff --git a/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIHostingView.swift b/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIHostingView.swift
+index cdaa69f..34da185 100644
+--- a/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIHostingView.swift
++++ b/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIHostingView.swift
+@@ -42,7 +42,7 @@ extension ExpoSwiftUI {
+   /**
+    A hosting view that renders a SwiftUI view inside the UIKit view hierarchy.
+    */
+-  public final class HostingView<Props: ViewProps, ContentView: View<Props>>: ExpoView, @MainActor AnyExpoSwiftUIHostingView {
++  public final class HostingView<Props: ViewProps, ContentView: View<Props>>: ExpoView, AnyExpoSwiftUIHostingView {
+     /**
+      Props object that stores all the props for this particular view.
+      It's an environment object that is observed by the content view.
 diff --git a/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift b/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift
-index 26417f5..ff02da2 100644
+index 26417f5..a93cdb5 100644
 --- a/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift
 +++ b/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift
-@@ -178,7 +178,7 @@ extension ExpoSwiftUI {
+@@ -10,7 +10,7 @@ extension ExpoSwiftUI {
+    This class is the Swift component of SwiftUIVirtualView, as referenced in ExpoFabricView.swift.
+    Used in production builds for minimal overhead.
+    */
+-  final class SwiftUIVirtualView<Props: ViewProps, ContentView: View<Props>>: SwiftUIVirtualViewObjC, @MainActor ExpoSwiftUIView {
++  final class SwiftUIVirtualView<Props: ViewProps, ContentView: View<Props>>: SwiftUIVirtualViewObjC, ExpoSwiftUIView {
+     var uiView: UIView?
+ 
+     /**
+@@ -160,7 +160,8 @@ extension ExpoSwiftUI.SwiftUIVirtualView: ExpoSwiftUI.FocusableViewContainer {
+ 
+ // MARK: - ViewWrapper (Production)
+ 
+-extension ExpoSwiftUI.SwiftUIVirtualView: @MainActor ExpoSwiftUI.ViewWrapper {
++@MainActor
++extension ExpoSwiftUI.SwiftUIVirtualView: ExpoSwiftUI.ViewWrapper {
+   func getWrappedView() -> Any {
+     if let wrapper = contentView as? ExpoSwiftUI.ViewWrapper {
+       return wrapper.getWrappedView()
+@@ -178,7 +179,7 @@ extension ExpoSwiftUI {
     is incorrectly placed without a `<Host>` wrapper. Instead, `didMoveToSuperview`
     emits an RCTLogError.
     */
@@ -58,7 +90,7 @@ index 26417f5..ff02da2 100644
      var uiView: UIView?
  
      /**
-@@ -332,7 +332,8 @@ extension ExpoSwiftUI.SwiftUIVirtualViewDev: ExpoSwiftUI.FocusableViewContainer
+@@ -332,7 +333,8 @@ extension ExpoSwiftUI.SwiftUIVirtualViewDev: ExpoSwiftUI.FocusableViewContainer
  
  // MARK: - ViewWrapper (Dev)
  
