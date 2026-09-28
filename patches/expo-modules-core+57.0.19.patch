@@ -10,6 +10,29 @@ index 2b5d405..7c0ab52 100644
      'CLANG_CXX_LANGUAGE_STANDARD' => 'c++20',
      'SWIFT_COMPILATION_MODE' => 'wholemodule',
      'OTHER_SWIFT_FLAGS' => "$(inherited) #{new_arch_enabled ? new_arch_compiler_flags : ''}",
+diff --git a/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift b/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift
+index 26417f5..ff02da2 100644
+--- a/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift
++++ b/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift
+@@ -178,7 +178,7 @@ extension ExpoSwiftUI {
+    is incorrectly placed without a `<Host>` wrapper. Instead, `didMoveToSuperview`
+    emits an RCTLogError.
+    */
+-  final class SwiftUIVirtualViewDev<Props: ViewProps, ContentView: View<Props>>: SwiftUIVirtualViewObjCDev, @MainActor ExpoSwiftUIView {
++  final class SwiftUIVirtualViewDev<Props: ViewProps, ContentView: View<Props>>: SwiftUIVirtualViewObjCDev, ExpoSwiftUIView {
+     var uiView: UIView?
+ 
+     /**
+@@ -332,7 +332,8 @@ extension ExpoSwiftUI.SwiftUIVirtualViewDev: ExpoSwiftUI.FocusableViewContainer
+ 
+ // MARK: - ViewWrapper (Dev)
+ 
+-extension ExpoSwiftUI.SwiftUIVirtualViewDev: @MainActor ExpoSwiftUI.ViewWrapper {
++@MainActor
++extension ExpoSwiftUI.SwiftUIVirtualViewDev: ExpoSwiftUI.ViewWrapper {
+   func getWrappedView() -> Any {
+     if let wrapper = contentView as? ExpoSwiftUI.ViewWrapper {
+       return wrapper.getWrappedView()
 diff --git a/node_modules/expo-modules-core/ios/Core/Views/ViewDefinition.swift b/node_modules/expo-modules-core/ios/Core/Views/ViewDefinition.swift
 index f4f2ddd..7d89a3c 100644
 --- a/node_modules/expo-modules-core/ios/Core/Views/ViewDefinition.swift
@@ -23,6 +46,35 @@ index f4f2ddd..7d89a3c 100644
    public static func getDynamicType() -> AnyDynamicType {
      return DynamicViewType(innerType: Self.self)
    }
+diff --git a/node_modules/expo-modules-core/ios/DevTools/URLAuthenticationChallengeForwardSender.swift b/node_modules/expo-modules-core/ios/DevTools/URLAuthenticationChallengeForwardSender.swift
+index 8c3efcb..31872f9 100644
+--- a/node_modules/expo-modules-core/ios/DevTools/URLAuthenticationChallengeForwardSender.swift
++++ b/node_modules/expo-modules-core/ios/DevTools/URLAuthenticationChallengeForwardSender.swift
+@@ -4,9 +4,9 @@
+  A helper class to forward URLAuthenticationChallenge completion handler to URLAuthenticationChallengeSender
+  */
+ internal final class URLAuthenticationChallengeForwardSender: NSObject, URLAuthenticationChallengeSender {
+-  let completionHandler: (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
++  let completionHandler: @Sendable (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
+ 
+-  init(completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
++  init(completionHandler: @escaping @Sendable (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+     self.completionHandler = completionHandler
+     super.init()
+   }
+diff --git a/node_modules/expo-modules-core/ios/DevTools/URLSessionSessionDelegateProxy.swift b/node_modules/expo-modules-core/ios/DevTools/URLSessionSessionDelegateProxy.swift
+index dbc5b65..1f2c962 100644
+--- a/node_modules/expo-modules-core/ios/DevTools/URLSessionSessionDelegateProxy.swift
++++ b/node_modules/expo-modules-core/ios/DevTools/URLSessionSessionDelegateProxy.swift
+@@ -3,7 +3,7 @@
+ /**
+  Shared URLSessionDelegate instance and delete calls back to ExpoRequestInterceptorProtocol instances.
+  */
+-public final class URLSessionSessionDelegateProxy: NSObject, URLSessionDataDelegate {
++public final class URLSessionSessionDelegateProxy: NSObject, URLSessionDataDelegate, @unchecked Sendable {
+   private let dispatchQueue: DispatchQueue
+   private var delegateMap: [AnyHashable: URLSessionDataDelegate] = [:]
+ 
 diff --git a/node_modules/expo-modules-core/ios/ExpoModulesCore.swift b/node_modules/expo-modules-core/ios/ExpoModulesCore.swift
 index 7185ae7..ad7d5e6 100644
 --- a/node_modules/expo-modules-core/ios/ExpoModulesCore.swift
