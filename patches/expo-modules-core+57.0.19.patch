@@ -1,3 +1,15 @@
+diff --git a/node_modules/expo-modules-core/ExpoModulesCore.podspec b/node_modules/expo-modules-core/ExpoModulesCore.podspec
+index 2b5d405..7c0ab52 100644
+--- a/node_modules/expo-modules-core/ExpoModulesCore.podspec
++++ b/node_modules/expo-modules-core/ExpoModulesCore.podspec
+@@ -84,6 +84,7 @@ Pod::Spec.new do |s|
+   s.pod_target_xcconfig = {
+     'USE_HEADERMAP' => 'YES',
+     'DEFINES_MODULE' => 'YES',
++    'BUILD_LIBRARY_FOR_DISTRIBUTION' => 'NO',
+     'CLANG_CXX_LANGUAGE_STANDARD' => 'c++20',
+     'SWIFT_COMPILATION_MODE' => 'wholemodule',
+     'OTHER_SWIFT_FLAGS' => "$(inherited) #{new_arch_enabled ? new_arch_compiler_flags : ''}",
 diff --git a/node_modules/expo-modules-core/ios/Core/Views/ViewDefinition.swift b/node_modules/expo-modules-core/ios/Core/Views/ViewDefinition.swift
 index f4f2ddd..7d89a3c 100644
 --- a/node_modules/expo-modules-core/ios/Core/Views/ViewDefinition.swift
