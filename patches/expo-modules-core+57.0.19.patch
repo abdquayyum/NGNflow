@@ -23,3 +23,12 @@ index f4f2ddd..7d89a3c 100644
    public static func getDynamicType() -> AnyDynamicType {
      return DynamicViewType(innerType: Self.self)
    }
+diff --git a/node_modules/expo-modules-core/ios/ExpoModulesCore.swift b/node_modules/expo-modules-core/ios/ExpoModulesCore.swift
+index 7185ae7..ad7d5e6 100644
+--- a/node_modules/expo-modules-core/ios/ExpoModulesCore.swift
++++ b/node_modules/expo-modules-core/ios/ExpoModulesCore.swift
+@@ -1,3 +1,4 @@
++@_exported import _Concurrency
+ // Re-export ExpoModulesJSI so that modules importing ExpoModulesCore
+ // automatically get access to JSI types (JavaScriptRuntime, JavaScriptValue, etc.).
+ @_exported public import ExpoModulesJSI
