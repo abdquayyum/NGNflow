@@ -38,7 +38,8 @@
             "usePrecompiledModules": false
           }
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "extra": {
       "eas": {
