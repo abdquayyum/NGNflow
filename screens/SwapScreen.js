@@ -62,7 +62,7 @@ export default function SwapScreen({ route, navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1 bg-black px-5 justify-center">
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={Platform.OS === "ios" ? 85 : 0} className="flex-1 bg-black px-5 justify-center">
       <Text className="text-2xl font-bold mb-8 text-center text-white">Instant Swap</Text>
       
       <View className={`bg-neutral-900 p-6 rounded-[2rem] border ${parsedPay > fromBalance ? 'border-red-500/50' : 'border-neutral-800'} mb-2`}>

@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView, StatusBar } from 'react-native';
+import { View, StatusBar } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -44,7 +45,7 @@ export default function App() {
   const isAuthenticated = !!token;
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-950">
+    <SafeAreaProvider className="flex-1 bg-black">
       <StatusBar barStyle="light-content" />
       <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false, animation: 'fade' }}>
@@ -58,6 +59,6 @@ export default function App() {
           )}
         </Stack.Navigator>
       </NavigationContainer>
-    </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
