@@ -59,18 +59,18 @@ index 00ed407..ddb1765 100644
    // `@unchecked` because `SharedObjectNativeState` isn't `Sendable` (its JSI base class isn't), yet a
    // value escapes `withLock` whenever `get`/the lookups return it. Access is always serialized through
 diff --git a/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIHostingView.swift b/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIHostingView.swift
-index cdaa69f..34da185 100644
+index cdaa69f..6a927c2 100644
 --- a/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIHostingView.swift
 +++ b/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIHostingView.swift
-@@ -42,7 +42,7 @@ extension ExpoSwiftUI {
-   /**
-    A hosting view that renders a SwiftUI view inside the UIKit view hierarchy.
-    */
--  public final class HostingView<Props: ViewProps, ContentView: View<Props>>: ExpoView, @MainActor AnyExpoSwiftUIHostingView {
-+  public final class HostingView<Props: ViewProps, ContentView: View<Props>>: ExpoView, AnyExpoSwiftUIHostingView {
-     /**
-      Props object that stores all the props for this particular view.
-      It's an environment object that is observed by the content view.
+@@ -5,7 +5,7 @@ import SwiftUI
+ /**
+  A type-erased protocol that hosting views must conform to.
+  */
+-internal protocol AnyExpoSwiftUIHostingView {
++@MainActor internal protocol AnyExpoSwiftUIHostingView {
+   func updateProps(_ rawProps: [String: Any])
+   func getContentView() -> any ExpoSwiftUI.View
+   func getProps() -> ExpoSwiftUI.ViewProps
 diff --git a/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift b/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift
 index 26417f5..a93cdb5 100644
 --- a/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIVirtualView.swift
