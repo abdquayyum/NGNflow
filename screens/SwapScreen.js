@@ -68,9 +68,10 @@ export default function SwapScreen({ route, navigation }) {
       <View className={`bg-neutral-900 p-6 rounded-[2rem] border ${parsedPay > fromBalance ? 'border-red-500/50' : 'border-neutral-800'} mb-2`}>
         <Text className="text-xs text-neutral-400 font-medium uppercase mb-3">You Pay</Text>
         <View className="flex-row justify-between items-center">
-          <TextInput style={{ lineHeight: undefined, includeFontPadding: false }} 
+          <TextInput 
             value={payAmount} onChangeText={setPayAmount} keyboardType="numeric"
-            className="flex-1 text-4xl font-bold text-white py-2" placeholder="0.00" placeholderTextColor="#525252"
+            className="flex-1 text-4xl font-bold text-white m-0 p-0" placeholder="0.00" placeholderTextColor="#525252"
+            style={{ lineHeight: undefined, includeFontPadding: false, paddingVertical: 0, textAlignVertical: 'center' }}
           />
           <TouchableOpacity onPress={() => openSelector('pay')} className="flex-row items-center bg-neutral-950 px-3 py-2 rounded-full border border-neutral-800 ml-4">
             <Image source={{ uri: payAsset.logo }} className="w-5 h-5 rounded-full mr-2 bg-white" />

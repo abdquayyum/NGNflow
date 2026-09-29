@@ -104,9 +104,9 @@ export default function TransferScreen({ navigation }) {
           <Text className="text-sm font-medium text-neutral-400 uppercase mb-4">Amount to Send</Text>
           <View className="flex-row items-center justify-center px-4">
             <Text className="text-3xl text-emerald-500 mr-2">{tab === 'fiat' ? '₦' : ''}</Text>
-            <TextInput style={{ lineHeight: undefined, includeFontPadding: false }} 
+            <TextInput  
               value={amount} onChangeText={setAmount} keyboardType="numeric"
-              className="text-4xl font-bold text-white text-center min-w-[50%] max-w-[80%]" 
+              className="text-4xl font-bold text-white text-center min-w-[50%] max-w-[80%] m-0 p-0" style={{ lineHeight: undefined, includeFontPadding: false, paddingVertical: 0, textAlignVertical: "center" }} 
               placeholder="0.00" placeholderTextColor="#525252"
               adjustsFontSizeToFit={true}
               numberOfLines={1}
@@ -136,11 +136,13 @@ export default function TransferScreen({ navigation }) {
               </View>
             </View>
             <Text className="text-xs font-semibold text-neutral-400 mb-2 uppercase">Destination Address</Text>
-            <TextInput style={{ lineHeight: undefined, includeFontPadding: false }} 
-              value={address} onChangeText={setAddress}
-              className="bg-neutral-950 border border-neutral-800 rounded-2xl px-4 py-3 text-white font-medium mb-2"
-              placeholder="Paste wallet address" placeholderTextColor="#525252"
-            />
+            <View className="bg-neutral-950 border border-neutral-800 rounded-2xl px-4 py-4 mb-2 flex-row items-center">
+              <TextInput  
+                value={address} onChangeText={setAddress}
+                className="flex-1 text-white font-medium p-0 m-0" style={{ lineHeight: undefined, includeFontPadding: false, paddingVertical: 0, textAlignVertical: "center" }}
+                placeholder="Paste wallet address" placeholderTextColor="#525252"
+              />
+            </View>
           </View>
         ) : (
           <View className="bg-neutral-900 rounded-[2rem] p-6 border border-neutral-800">
@@ -154,11 +156,13 @@ export default function TransferScreen({ navigation }) {
             </TouchableOpacity>
 
             <Text className="text-xs font-semibold text-neutral-400 mb-2 uppercase">Account Number</Text>
-            <TextInput style={{ lineHeight: undefined, includeFontPadding: false }} 
-              value={accountNumber} onChangeText={setAccountNumber} keyboardType="numeric" maxLength={10}
-              className="bg-neutral-950 border border-neutral-800 rounded-2xl px-4 py-3 text-white font-medium"
-              placeholder="Enter 10-digit NUBAN" placeholderTextColor="#525252"
-            />
+            <View className="bg-neutral-950 border border-neutral-800 rounded-2xl px-4 py-4 flex-row items-center">
+              <TextInput  
+                value={accountNumber} onChangeText={setAccountNumber} keyboardType="numeric" maxLength={10}
+                className="flex-1 text-white font-medium p-0 m-0" style={{ lineHeight: undefined, includeFontPadding: false, paddingVertical: 0, textAlignVertical: "center" }}
+                placeholder="Enter 10-digit NUBAN" placeholderTextColor="#525252"
+              />
+            </View>
             
             {accountNumber.length === 10 && (
               <View className="mt-4 flex-row items-center bg-neutral-950 p-3 rounded-xl border border-neutral-800">
@@ -189,7 +193,7 @@ export default function TransferScreen({ navigation }) {
               <Text className="text-xl font-bold text-white">Select Bank</Text>
               <TouchableOpacity onPress={() => setShowBankPicker(false)}><X color="#fff" size={24} /></TouchableOpacity>
             </View>
-            <TextInput style={{ lineHeight: undefined, includeFontPadding: false }} 
+            <TextInput  
               value={bankSearch} onChangeText={setBankSearch}
               placeholder="Search bank name..." placeholderTextColor="#525252"
               className="bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-white font-medium mb-4"
