@@ -88,8 +88,8 @@ export default function TransferScreen({ navigation }) {
   const [bankSearch, setBankSearch] = useState('');
   
   return (
-    <KeyboardAwareScrollView contentContainerStyle={{ flexGrow: 1, padding: 20 }} enableOnAndroid={true} extraScrollHeight={40} className="flex-1 bg-black">
-      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 20, paddingTop: 60 }}>
+    <KeyboardAwareScrollView contentContainerStyle={{ flexGrow: 1, padding: 20, paddingTop: 60 }} enableOnAndroid={true} extraScrollHeight={40} className="flex-1 bg-black">
+      
         <Text className="text-2xl font-bold mb-6 text-center text-white">Transfer</Text>
         
         <View className="flex-row bg-neutral-900 rounded-xl p-1 mb-8">
