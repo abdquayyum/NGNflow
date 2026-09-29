@@ -88,7 +88,7 @@ export default function TransferScreen({ navigation }) {
   const [bankSearch, setBankSearch] = useState('');
   
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "position" : "height"} keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0} style={{ flex: 1 }} className="bg-black">
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={Platform.OS === "ios" ? -64 : 0} style={{ flex: 1 }} className="bg-black">
 <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 20, paddingTop: 60 }} keyboardShouldPersistTaps="handled">
       
         <Text className="text-2xl font-bold mb-6 text-center text-white">Transfer</Text>
