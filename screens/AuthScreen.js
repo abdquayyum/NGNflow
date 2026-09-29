@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
 import useStore from '../store/useStore';
 import { Building } from 'lucide-react-native';
 
@@ -40,9 +40,11 @@ export default function AuthScreen() {
         <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24 }}>
           
           <View className="items-center mb-10 mt-10">
-            <View className="w-16 h-16 bg-emerald-500 rounded-3xl items-center justify-center mb-5 shadow-lg shadow-emerald-500/30">
-               <Building color="#fff" size={32} strokeWidth={2.5} />
-            </View>
+            <Image 
+              source={require('../assets/icon.png')} 
+              style={{ width: 80, height: 80, borderRadius: 24 }} 
+              className="mb-5 shadow-lg shadow-emerald-500/30"
+            />
             <Text className="text-4xl font-extrabold text-white tracking-tight">NGNflow</Text>
             <Text className="text-neutral-400 mt-2 text-center text-sm font-medium tracking-wide uppercase">Premium Crypto & Fiat</Text>
           </View>
