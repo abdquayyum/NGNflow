@@ -57,7 +57,7 @@ export default function AuthScreen() {
             {!isLogin && (
               <View className="mb-4">
                 <Text className="text-neutral-400 text-xs uppercase font-bold mb-2 ml-1">Legal Full Name</Text>
-                <View className="flex-row items-center bg-neutral-950 rounded-2xl border border-neutral-800 px-4 py-4">
+                <View className="flex-row items-center bg-neutral-950 rounded-2xl border border-neutral-800 px-4 py-4 h-14">
                   <TextInput  
                     value={fullName} onChangeText={setFullName}
                     className="flex-1 text-white font-medium text-base p-0 m-0"
@@ -70,7 +70,7 @@ export default function AuthScreen() {
             
             <View className="mb-4">
               <Text className="text-neutral-400 text-xs uppercase font-bold mb-2 ml-1">Email Address</Text>
-              <View className="flex-row items-center bg-neutral-950 rounded-2xl border border-neutral-800 px-4 py-4">
+              <View className="flex-row items-center bg-neutral-950 rounded-2xl border border-neutral-800 px-4 py-4 h-14">
                 <TextInput  
                   value={email} onChangeText={setEmail}
                   className="flex-1 text-white font-medium text-base p-0 m-0"
@@ -83,7 +83,7 @@ export default function AuthScreen() {
             
             <View className="mb-8">
               <Text className="text-neutral-400 text-xs uppercase font-bold mb-2 ml-1">Password</Text>
-              <View className="flex-row items-center bg-neutral-950 rounded-2xl border border-neutral-800 px-4 py-4">
+              <View className="flex-row items-center bg-neutral-950 rounded-2xl border border-neutral-800 px-4 py-4 h-14">
                 <TextInput  
                   value={password} onChangeText={setPassword} secureTextEntry
                   className="flex-1 text-white font-medium text-base p-0 m-0"

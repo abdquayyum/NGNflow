@@ -192,7 +192,7 @@ export default function TransferScreen({ navigation }) {
             <TextInput  
               value={bankSearch} onChangeText={setBankSearch}
               placeholder="Search bank name..." placeholderTextColor="#525252"
-              className="bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-white font-medium mb-4"
+              className="bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-white font-medium mb-4 h-14"
             />
             <FlatList 
               data={banks.filter(b => b.name.toLowerCase().includes(bankSearch.toLowerCase()))}
