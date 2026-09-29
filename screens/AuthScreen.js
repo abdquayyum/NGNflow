@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator, Alert, Platform, Image } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator, Alert, Platform, Image, KeyboardAvoidingView, ScrollView } from 'react-native';
+
 import useStore from '../store/useStore';
 import { Building } from 'lucide-react-native';
 
@@ -37,7 +37,8 @@ export default function AuthScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-950">
-      <KeyboardAwareScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24 }} enableOnAndroid={true} extraScrollHeight={20}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "position" : "height"} keyboardVerticalOffset={Platform.OS === "ios" ? -50 : 0} style={{ flex: 1 }}>
+<ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingHorizontal: 24 }} keyboardShouldPersistTaps="handled">
         
           
           <View className="items-center mb-10 mt-10">
@@ -109,7 +110,8 @@ export default function AuthScreen() {
             </TouchableOpacity>
           </View>
         
-      </KeyboardAwareScrollView>
+      </ScrollView>
+</KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

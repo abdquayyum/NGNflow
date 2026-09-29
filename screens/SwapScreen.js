@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, ActivityIndicator, Alert, Image, Platform } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { View, Text, TextInput, TouchableOpacity, Modal, ActivityIndicator, Alert, Image, Platform, KeyboardAvoidingView, ScrollView } from 'react-native';
+
 import { ArrowDown, ChevronRight, Search, X } from 'lucide-react-native';
 import useStore from '../store/useStore';
 
@@ -63,7 +63,8 @@ export default function SwapScreen({ route, navigation }) {
   };
 
   return (
-    <KeyboardAwareScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, justifyContent: 'center' }} enableOnAndroid={true} extraScrollHeight={40} className="flex-1 bg-black">
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "position" : "height"} keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0} style={{ flex: 1 }} className="bg-black">
+<ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, justifyContent: "center" }} keyboardShouldPersistTaps="handled">
       <Text className="text-2xl font-bold mb-8 text-center text-white">Instant Swap</Text>
       
       <View className={`bg-neutral-900 p-6 rounded-[2rem] border ${parsedPay > fromBalance ? 'border-red-500/50' : 'border-neutral-800'} mb-2`}>
@@ -150,6 +151,7 @@ export default function SwapScreen({ route, navigation }) {
           </View>
         </View>
       </Modal>
-    </KeyboardAwareScrollView>
+    </ScrollView>
+</KeyboardAvoidingView>
   );
 }

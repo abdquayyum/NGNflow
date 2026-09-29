@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, Platform, Modal, FlatList } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, Platform, Modal, FlatList, KeyboardAvoidingView, ScrollView } from 'react-native';
+
 import { Building, Send, Wallet, Globe, CheckCircle2, ChevronDown, X } from 'lucide-react-native';
 import useStore from '../store/useStore';
 
@@ -88,7 +88,8 @@ export default function TransferScreen({ navigation }) {
   const [bankSearch, setBankSearch] = useState('');
   
   return (
-    <KeyboardAwareScrollView contentContainerStyle={{ flexGrow: 1, padding: 20, paddingTop: 60 }} enableOnAndroid={true} extraScrollHeight={40} className="flex-1 bg-black">
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "position" : "height"} keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0} style={{ flex: 1 }} className="bg-black">
+<ScrollView contentContainerStyle={{ flexGrow: 1, padding: 20, paddingTop: 60 }} keyboardShouldPersistTaps="handled">
       
         <Text className="text-2xl font-bold mb-6 text-center text-white">Transfer</Text>
         
@@ -235,6 +236,7 @@ export default function TransferScreen({ navigation }) {
           </View>
         </View>
       </Modal>
-    </KeyboardAwareScrollView>
+    </ScrollView>
+</KeyboardAvoidingView>
   );
 }
