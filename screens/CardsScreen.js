@@ -90,7 +90,7 @@ export default function CardsScreen() {
   };
 
   return (
-    <View className="flex-1 bg-black px-5 justify-center pt-12">
+    <View className="flex-1 bg-black px-5 justify-center pt-20">
       <Text className="text-2xl font-bold text-center text-white mb-8">Virtual Cards</Text>
       
       {cards.length === 0 ? (
@@ -209,7 +209,7 @@ export default function CardsScreen() {
             <View className="mb-4">
               <Text className="text-neutral-400 text-xs uppercase font-bold mb-2 ml-1">Title</Text>
               <View className="flex-row items-center bg-neutral-950 rounded-2xl border border-neutral-800 px-4 py-1 h-14">
-                <TextInput style={{ lineHeight: undefined, includeFontPadding: false }} 
+                <TextInput  
                   value={kycTitle} onChangeText={setKycTitle}
                   className="flex-1 text-white font-medium text-base p-0 m-0"
                   placeholderTextColor="#737373" placeholder="MR / MRS"
@@ -220,7 +220,7 @@ export default function CardsScreen() {
             <View className="mb-4">
               <Text className="text-neutral-400 text-xs uppercase font-bold mb-2 ml-1">Gender</Text>
               <View className="flex-row items-center bg-neutral-950 rounded-2xl border border-neutral-800 px-4 py-1 h-14">
-                <TextInput style={{ lineHeight: undefined, includeFontPadding: false }} 
+                <TextInput  
                   value={kycGender} onChangeText={setKycGender}
                   className="flex-1 text-white font-medium text-base p-0 m-0"
                   placeholderTextColor="#737373" placeholder="M / F"
@@ -231,7 +231,7 @@ export default function CardsScreen() {
             <View className="mb-8">
               <Text className="text-neutral-400 text-xs uppercase font-bold mb-2 ml-1">Date of Birth (YYYY-MM-DD)</Text>
               <View className="flex-row items-center bg-neutral-950 rounded-2xl border border-neutral-800 px-4 py-1 h-14">
-                <TextInput style={{ lineHeight: undefined, includeFontPadding: false }} 
+                <TextInput  
                   value={kycDob} onChangeText={setKycDob}
                   className="flex-1 text-white font-medium text-base p-0 m-0"
                   placeholderTextColor="#737373" placeholder="1990-01-01"

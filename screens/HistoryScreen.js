@@ -32,7 +32,7 @@ export default function HistoryScreen() {
   };
 
   return (
-    <View className="flex-1 bg-black px-5 pt-12">
+    <View className="flex-1 bg-black px-5 pt-20">
       <Text className="text-2xl font-bold text-center text-white mb-8">Transaction History</Text>
       
       {(!transactions || transactions.length === 0) ? (
