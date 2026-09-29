@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     name: Build iOS and Submit to TestFlight
-    runs-on: macos-15
+    runs-on: macos-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
