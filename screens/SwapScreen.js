@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, ScrollView, ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Modal, ActivityIndicator, Alert, Image, Platform } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { ArrowDown, ChevronRight, Search, X } from 'lucide-react-native';
 import useStore from '../store/useStore';
 
@@ -62,13 +63,13 @@ export default function SwapScreen({ route, navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={Platform.OS === "ios" ? 85 : 0} className="flex-1 bg-black px-5 justify-center">
+    <KeyboardAwareScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, justifyContent: 'center' }} enableOnAndroid={true} extraScrollHeight={40} className="flex-1 bg-black">
       <Text className="text-2xl font-bold mb-8 text-center text-white">Instant Swap</Text>
       
       <View className={`bg-neutral-900 p-6 rounded-[2rem] border ${parsedPay > fromBalance ? 'border-red-500/50' : 'border-neutral-800'} mb-2`}>
         <Text className="text-xs text-neutral-400 font-medium uppercase mb-3">You Pay</Text>
         <View className="flex-row justify-between items-center">
-          <TextInput  
+          <TextInput scrollEnabled={false}  
             value={payAmount} onChangeText={setPayAmount} keyboardType="numeric"
             className="flex-1 text-4xl font-bold text-white py-2 h-16" placeholder="0.00" placeholderTextColor="#525252"
           />
@@ -149,6 +150,6 @@ export default function SwapScreen({ route, navigation }) {
           </View>
         </View>
       </Modal>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
   );
 }

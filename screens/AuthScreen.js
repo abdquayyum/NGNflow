@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ActivityIndicator, Alert, Platform, Image } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import useStore from '../store/useStore';
 import { Building } from 'lucide-react-native';
 
@@ -36,8 +37,8 @@ export default function AuthScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-950">
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-        <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24 }}>
+      <KeyboardAwareScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24 }} enableOnAndroid={true} extraScrollHeight={20}>
+        
           
           <View className="items-center mb-10 mt-10">
             <Image 
@@ -58,7 +59,7 @@ export default function AuthScreen() {
               <View className="mb-4">
                 <Text className="text-neutral-400 text-xs uppercase font-bold mb-2 ml-1">Legal Full Name</Text>
                 <View className="flex-row items-center bg-neutral-950 rounded-2xl border border-neutral-800 px-4 py-4 h-14">
-                  <TextInput  
+                  <TextInput scrollEnabled={false}  
                     value={fullName} onChangeText={setFullName}
                     className="flex-1 text-white font-medium text-base p-0 m-0"
                     placeholderTextColor="#737373" placeholder="Enter full name"
@@ -71,7 +72,7 @@ export default function AuthScreen() {
             <View className="mb-4">
               <Text className="text-neutral-400 text-xs uppercase font-bold mb-2 ml-1">Email Address</Text>
               <View className="flex-row items-center bg-neutral-950 rounded-2xl border border-neutral-800 px-4 py-4 h-14">
-                <TextInput  
+                <TextInput scrollEnabled={false}  
                   value={email} onChangeText={setEmail}
                   className="flex-1 text-white font-medium text-base p-0 m-0"
                   placeholderTextColor="#737373" placeholder="Enter email address" 
@@ -84,7 +85,7 @@ export default function AuthScreen() {
             <View className="mb-8">
               <Text className="text-neutral-400 text-xs uppercase font-bold mb-2 ml-1">Password</Text>
               <View className="flex-row items-center bg-neutral-950 rounded-2xl border border-neutral-800 px-4 py-4 h-14">
-                <TextInput  
+                <TextInput scrollEnabled={false}  
                   value={password} onChangeText={setPassword} secureTextEntry
                   className="flex-1 text-white font-medium text-base p-0 m-0"
                   placeholderTextColor="#737373" placeholder="Enter password"
@@ -107,8 +108,8 @@ export default function AuthScreen() {
               </Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Modal, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, Platform, Modal, FlatList } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Building, Send, Wallet, Globe, CheckCircle2, ChevronDown, X } from 'lucide-react-native';
 import useStore from '../store/useStore';
 
@@ -87,7 +88,7 @@ export default function TransferScreen({ navigation }) {
   const [bankSearch, setBankSearch] = useState('');
   
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 bg-black">
+    <KeyboardAwareScrollView contentContainerStyle={{ flexGrow: 1, padding: 20 }} enableOnAndroid={true} extraScrollHeight={40} className="flex-1 bg-black">
       <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 20, paddingTop: 60 }}>
         <Text className="text-2xl font-bold mb-6 text-center text-white">Transfer</Text>
         
@@ -104,7 +105,7 @@ export default function TransferScreen({ navigation }) {
           <Text className="text-sm font-medium text-neutral-400 uppercase mb-4">Amount to Send</Text>
           <View className="flex-row items-center justify-center px-4">
             <Text className="text-3xl text-emerald-500 mr-2">{tab === 'fiat' ? '₦' : ''}</Text>
-            <TextInput  
+            <TextInput scrollEnabled={false} 
               value={amount} onChangeText={setAmount} keyboardType="numeric"
               className="text-4xl font-bold text-white text-center min-w-[50%] max-w-[80%] h-16" 
               placeholder="0.00" placeholderTextColor="#525252"
@@ -136,7 +137,7 @@ export default function TransferScreen({ navigation }) {
               </View>
             </View>
             <Text className="text-xs font-semibold text-neutral-400 mb-2 uppercase">Destination Address</Text>
-            <TextInput  
+            <TextInput scrollEnabled={false} 
               value={address} onChangeText={setAddress}
               className="bg-neutral-950 border border-neutral-800 rounded-2xl px-4 py-3 text-white font-medium mb-2"
               placeholder="Paste wallet address" placeholderTextColor="#525252"
@@ -154,7 +155,7 @@ export default function TransferScreen({ navigation }) {
             </TouchableOpacity>
 
             <Text className="text-xs font-semibold text-neutral-400 mb-2 uppercase">Account Number</Text>
-            <TextInput  
+            <TextInput scrollEnabled={false} 
               value={accountNumber} onChangeText={setAccountNumber} keyboardType="numeric" maxLength={10}
               className="bg-neutral-950 border border-neutral-800 rounded-2xl px-4 py-3 text-white font-medium"
               placeholder="Enter 10-digit NUBAN" placeholderTextColor="#525252"
@@ -180,7 +181,7 @@ export default function TransferScreen({ navigation }) {
         >
           {loading ? <ActivityIndicator color="#fff" /> : <Text className="font-bold text-lg text-white">Send Now</Text>}
         </TouchableOpacity>
-      </ScrollView>
+      
 
       <Modal visible={showBankPicker} animationType="slide" transparent>
         <View className="flex-1 justify-end bg-black/80">
@@ -189,7 +190,7 @@ export default function TransferScreen({ navigation }) {
               <Text className="text-xl font-bold text-white">Select Bank</Text>
               <TouchableOpacity onPress={() => setShowBankPicker(false)}><X color="#fff" size={24} /></TouchableOpacity>
             </View>
-            <TextInput  
+            <TextInput scrollEnabled={false} 
               value={bankSearch} onChangeText={setBankSearch}
               placeholder="Search bank name..." placeholderTextColor="#525252"
               className="bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-white font-medium mb-4 h-14"
@@ -234,6 +235,6 @@ export default function TransferScreen({ navigation }) {
           </View>
         </View>
       </Modal>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
   );
 }
