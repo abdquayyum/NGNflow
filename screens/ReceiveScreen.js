@@ -20,13 +20,20 @@ export default function ReceiveScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   
   const getDepositAddress = useStore(state => state.getDepositAddress);
+  const getFiatDepositAccount = useStore(state => state.getFiatDepositAccount);
   
   useEffect(() => {
     fetchAddress();
   }, [currency, network]);
 
   const fetchAddress = async () => {
-    if (currency === 'NGN') return setAddress('0123456789 (Guaranty Trust Bank)');
+    if (currency === 'NGN') {
+      setLoading(true);
+      const addr = await getFiatDepositAccount();
+      setAddress(addr);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const addr = await getDepositAddress(currency, network);
     setAddress(addr);

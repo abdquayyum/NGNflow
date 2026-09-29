@@ -131,6 +131,17 @@ const useStore = create((set, get) => ({
     } catch (error) { console.log(error); }
   },
 
+  getFiatDepositAccount: async () => {
+    try {
+      const res = await axios.get(`${API_URL}/fiat/deposit-account`, {
+        headers: { Authorization: `Bearer ${get().token}` }
+      });
+      return `${res.data.account_number} (${res.data.bank_name})`;
+    } catch (error) {
+      console.log("Error getting fiat deposit account", error);
+      return "";
+    }
+  },
   getDepositAddress: async (currency, network) => {
     try {
       const res = await axios.get(`${API_URL}/crypto/deposit-address/${currency}?network=${network}`, {
