@@ -58,6 +58,19 @@ index 00ed407..ddb1765 100644
  
    // `@unchecked` because `SharedObjectNativeState` isn't `Sendable` (its JSI base class isn't), yet a
    // value escapes `withLock` whenever `get`/the lookups return it. Access is always serialized through
+diff --git a/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIHostingView.swift b/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIHostingView.swift
+index cdaa69f..8a91258 100644
+--- a/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIHostingView.swift
++++ b/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIHostingView.swift
+@@ -42,7 +42,7 @@ extension ExpoSwiftUI {
+   /**
+    A hosting view that renders a SwiftUI view inside the UIKit view hierarchy.
+    */
+-  public final class HostingView<Props: ViewProps, ContentView: View<Props>>: ExpoView, @MainActor AnyExpoSwiftUIHostingView {
++  public final class HostingView<Props: ViewProps, ContentView: View<Props>>: ExpoView, @preconcurrency AnyExpoSwiftUIHostingView {
+     /**
+      Props object that stores all the props for this particular view.
+      It's an environment object that is observed by the content view.
 diff --git a/node_modules/expo-modules-core/ios/DevTools/URLAuthenticationChallengeForwardSender.swift b/node_modules/expo-modules-core/ios/DevTools/URLAuthenticationChallengeForwardSender.swift
 index 8c3efcb..31872f9 100644
 --- a/node_modules/expo-modules-core/ios/DevTools/URLAuthenticationChallengeForwardSender.swift
@@ -96,17 +109,3 @@ index 7185ae7..ad7d5e6 100644
  // Re-export ExpoModulesJSI so that modules importing ExpoModulesCore
  // automatically get access to JSI types (JavaScriptRuntime, JavaScriptValue, etc.).
  @_exported public import ExpoModulesJSI
-
-diff --git a/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIHostingView.swift b/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIHostingView.swift
-index cdaa69f..xxxxxxx 100644
---- a/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIHostingView.swift
-+++ b/node_modules/expo-modules-core/ios/Core/Views/SwiftUI/SwiftUIHostingView.swift
-@@ -42,7 +42,7 @@ extension ExpoSwiftUI {
-   /**
-    A hosting view that renders a SwiftUI view inside the UIKit view hierarchy.
-    */
--  public final class HostingView<Props: ViewProps, ContentView: View<Props>>: ExpoView, @MainActor AnyExpoSwiftUIHostingView {
-+  public final class HostingView<Props: ViewProps, ContentView: View<Props>>: ExpoView, @preconcurrency AnyExpoSwiftUIHostingView {
-     /**
-      Props object that stores all the props for this particular view.
-      It's an environment object that is observed by the content view.
