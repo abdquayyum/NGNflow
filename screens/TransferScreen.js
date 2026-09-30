@@ -20,6 +20,16 @@ export default function TransferScreen({ navigation }) {
   const [showCryptoPicker, setShowCryptoPicker] = useState(false);
 
   const balances = useStore(state => state.balances);
+
+  // Sync selected asset with navigation params dynamically
+  React.useEffect(() => {
+    if (route.params?.initialAsset) {
+      const sym = route.params.initialAsset === 'USDT' ? 'USDT_ERC20' : route.params.initialAsset;
+      const found = ASSETS.find(a => a.symbol === sym);
+      if (found) setPayAsset(found);
+    }
+  }, [route.params?.initialAsset]);
+
   const banks = useStore(state => state.banks);
   const transferCrypto = useStore(state => state.transferCrypto);
   const withdrawFiat = useStore(state => state.withdrawFiat);

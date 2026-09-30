@@ -8,7 +8,7 @@ const useStore = create((set, get) => ({
   user: null,
   token: null,
   balances: { NGN: 0, ETH: 0, BTC: 0, TRX: 0, USDT_TRON: 0, USDC_ETH: 0 },
-  rates: { USDT: 1500, BTC: 95000000, ETH: 4500000, NGN: 1 },
+  rates: { USDT: 1500, USDT_ERC20: 1500, USDT_TRC20: 1500, USDT_BEP20: 1500, USDT_POLYGON: 1500, BTC: 95000000, ETH: 4500000, TRX: 250, BNB: 850000, POL: 600, NGN: 1 },
   marketData: { BTC: { price: 0, change24h: 0 }, ETH: { price: 0, change24h: 0 }, USDT: { price: 0, change24h: 0 } },
   transactions: [],
   cards: [],
@@ -150,6 +150,7 @@ const useStore = create((set, get) => ({
       return res.data.address;
     } catch (error) {
       console.log('Error getting deposit address', error);
+      if (error.response?.status === 401) get().logout();
       return '';
     }
   },

@@ -1,15 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert, SafeAreaView } from 'react-native';
-import { QrCode, Copy, Globe, ArrowLeft } from 'lucide-react-native';
+import { Copy, Globe, ArrowLeft } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import QRCode from 'react-native-qrcode-svg';
 import useStore from '../store/useStore';
 
-const ASSETS = ['USDT', 'BTC', 'ETH', 'NGN'];
+const ASSETS = [
+  { symbol: 'USDT', name: 'Tether' },
+  { symbol: 'BTC', name: 'Bitcoin' },
+  { symbol: 'ETH', name: 'Ethereum' },
+  { symbol: 'TRX', name: 'Tron' },
+  { symbol: 'BNB', name: 'Binance Coin' },
+  { symbol: 'POL', name: 'Polygon' },
+  { symbol: 'NGN', name: 'Naira' }
+];
+
 const NETWORKS = {
-  'USDT': ['ERC20', 'TRC20', 'Polygon'],
+  'USDT': ['ERC20', 'TRC20', 'Polygon', 'BEP20'],
   'BTC': ['BTC'],
   'ETH': ['ERC20'],
+  'TRX': ['TRC20'],
+  'BNB': ['BEP20'],
+  'POL': ['Polygon'],
   'NGN': ['Bank Transfer']
 };
 
@@ -35,11 +47,19 @@ export default function ReceiveScreen({ navigation }) {
       return;
     }
     setLoading(true);
-    const addr = await getDepositAddress(currency, network);
+    let apiCurrency = currency;
+    if (currency === 'USDT') {
+        if (network === 'ERC20') apiCurrency = 'USDT_ERC20';
+        if (network === 'TRC20') apiCurrency = 'USDT_TRC20';
+        if (network === 'Polygon') apiCurrency = 'USDT_POLYGON';
+        if (network === 'BEP20') apiCurrency = 'USDT_BEP20';
+    }
+    
+    const addr = await getDepositAddress(apiCurrency, network);
     setAddress(addr);
     setLoading(false);
   };
-
+  
   const copyToClipboard = async () => {
     if (address) {
       await Clipboard.setStringAsync(address);
@@ -57,17 +77,17 @@ export default function ReceiveScreen({ navigation }) {
       </View>
       
       <ScrollView className="flex-1 px-5">
-        <View className="flex-row justify-between mb-6 mt-4">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6 mt-4 max-h-16">
           {ASSETS.map(a => (
             <TouchableOpacity 
-              key={a} 
-              onPress={() => { setCurrency(a); setNetwork(NETWORKS[a][0]); }}
-              className={`flex-1 py-3 items-center rounded-xl mx-1 border ${currency === a ? 'bg-emerald-500/20 border-emerald-500' : 'bg-neutral-900 border-neutral-800'}`}
+              key={a.symbol} 
+              onPress={() => { setCurrency(a.symbol); setNetwork(NETWORKS[a.symbol][0]); }}
+              className={`py-3 px-5 items-center justify-center rounded-xl mx-1 border ${currency === a.symbol ? 'bg-emerald-500/20 border-emerald-500' : 'bg-neutral-900 border-neutral-800'}`}
             >
-              <Text className={`font-bold ${currency === a ? 'text-emerald-500' : 'text-neutral-500'}`}>{a}</Text>
+              <Text className={`font-bold ${currency === a.symbol ? 'text-emerald-500' : 'text-neutral-500'}`}>{a.symbol}</Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
 
         <Text className="text-xs font-semibold text-neutral-400 mb-3 uppercase">Select Network</Text>
         <View className="flex-row flex-wrap gap-2 mb-8">

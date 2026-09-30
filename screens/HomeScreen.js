@@ -6,11 +6,12 @@ import { registerForPushNotificationsAsync } from '../utils/pushNotifications';
 
 const ASSETS = [
   { symbol: 'NGN', name: 'Nigerian Naira', isFiat: true, logo: 'https://cdn.countryflags.com/thumbs/nigeria/flag-round-250.png' },
-  { symbol: 'USDT_ERC20', name: 'Tether (ERC20)', isFiat: false, logo: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
-  { symbol: 'USDT_TRC20', name: 'Tether (TRC20)', isFiat: false, logo: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
-  { symbol: 'TRX', name: 'Tron', isFiat: false, logo: 'https://cryptologos.cc/logos/tron-trx-logo.png' },
+  { symbol: 'USDT', name: 'Tether', isFiat: false, logo: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
   { symbol: 'BTC', name: 'Bitcoin', isFiat: false, logo: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png' },
-  { symbol: 'ETH', name: 'Ethereum', isFiat: false, logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png' }
+  { symbol: 'ETH', name: 'Ethereum', isFiat: false, logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png' },
+  { symbol: 'TRX', name: 'Tron', isFiat: false, logo: 'https://cryptologos.cc/logos/tron-trx-logo.png' },
+  { symbol: 'BNB', name: 'Binance Coin', isFiat: false, logo: 'https://cryptologos.cc/logos/bnb-bnb-logo.png' },
+  { symbol: 'POL', name: 'Polygon', isFiat: false, logo: 'https://cryptologos.cc/logos/polygon-matic-logo.png' }
 ];
 
 export default function HomeScreen({ navigation }) {
@@ -121,6 +122,9 @@ export default function HomeScreen({ navigation }) {
 
         <View className="space-y-3">
           {ASSETS.map(asset => {
+            const bal = asset.symbol === 'USDT' ? ((balances['USDT_ERC20'] || 0) + (balances['USDT_TRC20'] || 0) + (balances['USDT_BEP20'] || 0) + (balances['USDT_POLYGON'] || 0)) : (balances[asset.symbol] || 0);
+            const rate = asset.symbol === 'USDT' ? (rates['USDT_ERC20'] || 1) : (rates[asset.symbol] || 1);
+            
             const change = !asset.isFiat && marketData[asset.symbol] ? marketData[asset.symbol].change24h : 0;
             const isPositive = change >= 0;
 
@@ -135,13 +139,13 @@ export default function HomeScreen({ navigation }) {
                   <View>
                     <Text className="text-white font-bold text-base">{asset.name}</Text>
                     <Text className="text-neutral-500 text-xs mt-1 font-medium">
-                      {balances[asset.symbol]?.toLocaleString(undefined, { maximumFractionDigits: 4 })} {asset.symbol}
+                      {bal.toLocaleString(undefined, { maximumFractionDigits: 4 })} {asset.symbol}
                     </Text>
                   </View>
                 </View>
                 <View className="items-end">
                   <Text className="text-white font-bold text-base tracking-tight">
-                    {formatNGN((balances[asset.symbol] || 0) * (rates[asset.symbol] || 1))}
+                    {formatNGN(bal * rate)}
                   </Text>
                   {!asset.isFiat && (
                     <View className={`mt-1 px-2 py-0.5 rounded-full ${isPositive ? 'bg-emerald-500/10' : 'bg-red-500/10'}`}>

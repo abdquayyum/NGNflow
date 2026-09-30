@@ -49,13 +49,16 @@ export default function AuthScreen() {
   return (
     <SafeAreaView className="flex-1 bg-neutral-950">
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0} style={{ flex: 1 }}
+        behavior="padding"
+        keyboardVerticalOffset={20}
+        style={{ flex: 1 }}
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingHorizontal: 24, paddingBottom: 60 }}
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24 }}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Top Dynamic Spacer */}
+          <View style={{ flex: 1 }} />
 
           { }
           <View className="items-center mb-10 mt-10">
@@ -153,6 +156,8 @@ export default function AuthScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Bottom Dynamic Spacer */}
+          <View style={{ flex: 1 }} />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

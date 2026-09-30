@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,11 +18,19 @@ import { ArrowDown, ChevronRight, X } from 'lucide-react-native';
 import useStore from '../store/useStore';
 
 const ASSETS = [
-  { symbol: 'NGN', name: 'Nigerian Naira', rate: 1, isFiat: true, logo: 'https://cdn.countryflags.com/thumbs/nigeria/flag-round-250.png' },
-  { symbol: 'USDT', name: 'Tether', rate: 1500, isFiat: false, logo: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
-  { symbol: 'BTC', name: 'Bitcoin', rate: 95000000, isFiat: false, logo: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png' },
-  { symbol: 'ETH', name: 'Ethereum', rate: 4500000, isFiat: false, logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png' }
+  { symbol: 'NGN', name: 'Nigerian Naira', isFiat: true, logo: 'https://cdn.countryflags.com/thumbs/nigeria/flag-round-250.png' },
+  { symbol: 'USDT_ERC20', name: 'Tether (ERC20)', isFiat: false, logo: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
+  { symbol: 'USDT_TRC20', name: 'Tether (TRC20)', isFiat: false, logo: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
+  { symbol: 'USDT_BEP20', name: 'Tether (BEP20)', isFiat: false, logo: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
+  { symbol: 'USDT_POLYGON', name: 'Tether (Polygon)', isFiat: false, logo: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
+  { symbol: 'BTC', name: 'Bitcoin', isFiat: false, logo: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png' },
+  { symbol: 'ETH', name: 'Ethereum', isFiat: false, logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png' },
+  { symbol: 'TRX', name: 'Tron', isFiat: false, logo: 'https://cryptologos.cc/logos/tron-trx-logo.png' },
+  { symbol: 'BNB', name: 'Binance Coin', isFiat: false, logo: 'https://cryptologos.cc/logos/bnb-bnb-logo.png' },
+  { symbol: 'POL', name: 'Polygon', isFiat: false, logo: 'https://cryptologos.cc/logos/polygon-matic-logo.png' }
 ];
+
+const USDT_NETWORKS = ['ERC20', 'TRC20', 'Polygon', 'BEP20'];
 
 export default function SwapScreen({ route, navigation }) {
   const [payAmount, setPayAmount] = useState('');
@@ -32,9 +40,20 @@ export default function SwapScreen({ route, navigation }) {
 
   const [payAsset, setPayAsset] = useState(initialAssetObj);
   const [receiveAsset, setReceiveAsset] = useState(ASSETS[0]);
+  const [receiveNetwork, setReceiveNetwork] = useState('ERC20');
   const [showSelector, setShowSelector] = useState({ isOpen: false, type: 'pay' });
 
   const balances = useStore(state => state.balances);
+
+  // Sync selected asset with navigation params dynamically
+  React.useEffect(() => {
+    if (route.params?.initialAsset) {
+      const sym = route.params.initialAsset === 'USDT' ? 'USDT_ERC20' : route.params.initialAsset;
+      const found = ASSETS.find(a => a.symbol === sym);
+      if (found) setPayAsset(found);
+    }
+  }, [route.params?.initialAsset]);
+
   const liveRates = useStore(state => state.rates);
   const { swap, loading, error, clearError } = useStore();
 
