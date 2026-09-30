@@ -1,0 +1,14 @@
+Build iOS and Submit to TestFlight	Dump Xcode Logs	2026-09-27T16:54:49.3100530Z ==> /var/folders/nj/vtw8zd2j31d1gdrtntc5y4600000gn/T/eas-build-local-nodejs/2d089d6d-df3c-4f34-b1c0-a083d3486ea7/logs/App-NGNflow.log <==
+Build iOS and Submit to TestFlight	Dump Xcode Logs	2026-09-27T16:54:49.3101240Z Command line invocation:
+Build iOS and Submit to TestFlight	Dump Xcode Logs	2026-09-27T16:54:49.3102790Z     /Applications/Xcode_16.1.app/Contents/Developer/usr/bin/xcodebuild -workspace ./NGNflow.xcworkspace -scheme NGNflow -configuration Release -derivedDataPath ./build -destination generic/platform=iOS -archivePath "/Users/runner/Library/Developer/Xcode/Archives/2026-09-27/App 2026-09-27 16.54.32.xcarchive" -resultBundlePath /var/folders/nj/vtw8zd2j31d1gdrtntc5y4600000gn/T/result-bundle-1790528064181.xcresult archive
+Build iOS and Submit to TestFlight	Dump Xcode Logs	2026-09-27T16:54:49.3104210Z 
+Build iOS and Submit to TestFlight	Dump Xcode Logs	2026-09-27T16:54:49.3104330Z User defaults from command line:
+Build iOS and Submit to TestFlight	Dump Xcode Logs	2026-09-27T16:54:49.3104890Z     IDEArchivePathOverride = /Users/runner/Library/Developer/Xcode/Archives/2026-09-27/App 2026-09-27 16.54.32.xcarchive
+Build iOS and Submit to TestFlight	Dump Xcode Logs	2026-09-27T16:54:49.3105680Z     IDEBuildOperationResultBundlePath = /var/folders/nj/vtw8zd2j31d1gdrtntc5y4600000gn/T/result-bundle-1790528064181.xcresult
+Build iOS and Submit to TestFlight	Dump Xcode Logs	2026-09-27T16:54:49.3107010Z     IDEDerivedDataPathOverride = /var/folders/nj/vtw8zd2j31d1gdrtntc5y4600000gn/T/eas-build-local-nodejs/2d089d6d-df3c-4f34-b1c0-a083d3486ea7/build/ios/build
+Build iOS and Submit to TestFlight	Dump Xcode Logs	2026-09-27T16:54:49.3107670Z     IDEPackageSupportUseBuiltinSCM = YES
+Build iOS and Submit to TestFlight	Dump Xcode Logs	2026-09-27T16:54:49.3107850Z 
+Build iOS and Submit to TestFlight	Dump Xcode Logs	2026-09-27T16:54:49.3107980Z Writing result bundle at path:
+Build iOS and Submit to TestFlight	Dump Xcode Logs	2026-09-27T16:54:49.3108410Z 	/var/folders/nj/vtw8zd2j31d1gdrtntc5y4600000gn/T/result-bundle-1790528064181.xcresult
+Build iOS and Submit to TestFlight	Dump Xcode Logs	2026-09-27T16:54:49.3108720Z 
+Build iOS and Submit to TestFlight	Dump Xcode Logs	2026-09-27T16:54:49.3108800Z 
