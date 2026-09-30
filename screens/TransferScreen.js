@@ -219,7 +219,7 @@ export default function TransferScreen({ navigation }) {
                 <Text className="text-xl font-bold text-white">Select Asset</Text>
                 <TouchableOpacity onPress={() => setShowCryptoPicker(false)}><X color="#fff" size={24} /></TouchableOpacity>
               </View>
-              {['USDT', 'BTC', 'ETH'].map(coin => (
+              {['USDT_ERC20', 'USDT_TRC20', 'BTC', 'ETH', 'TRX'].map(coin => (
                 <TouchableOpacity
                   key={coin}
                   onPress={() => {
