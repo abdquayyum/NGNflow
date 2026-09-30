@@ -4,7 +4,7 @@ import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, Plat
 import { Building, Send, Wallet, Globe, CheckCircle2, ChevronDown, X } from 'lucide-react-native';
 import useStore from '../store/useStore';
 
-export default function TransferScreen({ navigation }) {
+export default function TransferScreen({ navigation, route }) {
   const [tab, setTab] = useState('crypto');
   const [amount, setAmount] = useState('');
 
@@ -22,13 +22,32 @@ export default function TransferScreen({ navigation }) {
   const balances = useStore(state => state.balances);
 
   // Sync selected asset with navigation params dynamically
-  React.useEffect(() => {
-    if (route.params?.initialAsset) {
-      const sym = route.params.initialAsset === 'USDT' ? 'USDT_ERC20' : route.params.initialAsset;
-      const found = ASSETS.find(a => a.symbol === sym);
-      if (found) setPayAsset(found);
+  useEffect(() => {
+    if (route?.params?.initialAsset) {
+      const sym = route.params.initialAsset;
+      if (sym === 'USDT') {
+        setCurrency('USDT_ERC20');
+        setNetwork('ERC20');
+      } else if (sym === 'BTC') {
+        setCurrency('BTC');
+        setNetwork('BTC');
+      } else if (sym === 'ETH') {
+        setCurrency('ETH');
+        setNetwork('ERC20');
+      } else if (sym === 'TRX') {
+        setCurrency('TRX');
+        setNetwork('TRC20');
+      } else if (sym === 'BNB') {
+        setCurrency('BNB');
+        setNetwork('BEP20');
+      } else if (sym === 'POL') {
+        setCurrency('POL');
+        setNetwork('Polygon');
+      } else {
+        setCurrency(sym);
+      }
     }
-  }, [route.params?.initialAsset]);
+  }, [route?.params?.initialAsset]);
 
   const banks = useStore(state => state.banks);
   const transferCrypto = useStore(state => state.transferCrypto);
