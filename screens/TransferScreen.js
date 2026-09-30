@@ -5,20 +5,20 @@ import { Building, Send, Wallet, Globe, CheckCircle2, ChevronDown, X } from 'luc
 import useStore from '../store/useStore';
 
 export default function TransferScreen({ navigation }) {
-  const [tab, setTab] = useState('crypto'); 
+  const [tab, setTab] = useState('crypto');
   const [amount, setAmount] = useState('');
-  
+
   const [currency, setCurrency] = useState('USDT');
   const [network, setNetwork] = useState('ERC20');
   const [address, setAddress] = useState('');
-  
+
   const [accountNumber, setAccountNumber] = useState('');
   const [selectedBank, setSelectedBank] = useState(null);
   const [accountName, setAccountName] = useState('');
   const [resolving, setResolving] = useState(false);
   const [showBankPicker, setShowBankPicker] = useState(false);
   const [showCryptoPicker, setShowCryptoPicker] = useState(false);
-  
+
   const balances = useStore(state => state.balances);
   const banks = useStore(state => state.banks);
   const transferCrypto = useStore(state => state.transferCrypto);
@@ -86,13 +86,13 @@ export default function TransferScreen({ navigation }) {
   };
 
   const [bankSearch, setBankSearch] = useState('');
-  
+
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={Platform.OS === "ios" ? -64 : 0} style={{ flex: 1 }} className="bg-black">
-<ScrollView contentContainerStyle={{ flexGrow: 1, padding: 20, paddingTop: 60 }} keyboardShouldPersistTaps="handled">
-      
+      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 20, paddingTop: 60 }} keyboardShouldPersistTaps="handled">
+
         <Text className="text-2xl font-bold mb-6 text-center text-white">Transfer</Text>
-        
+
         <View className="flex-row bg-neutral-900 rounded-xl p-1 mb-8">
           <TouchableOpacity onPress={() => setTab('crypto')} className={`flex-1 py-3 items-center rounded-lg ${tab === 'crypto' ? 'bg-neutral-800' : ''}`}>
             <Text className={`font-bold ${tab === 'crypto' ? 'text-white' : 'text-neutral-500'}`}>Crypto</Text>
@@ -101,14 +101,14 @@ export default function TransferScreen({ navigation }) {
             <Text className={`font-bold ${tab === 'fiat' ? 'text-white' : 'text-neutral-500'}`}>Fiat (NGN)</Text>
           </TouchableOpacity>
         </View>
-        
+
         <View className="items-center mb-8">
           <Text className="text-sm font-medium text-neutral-400 uppercase mb-4">Amount to Send</Text>
           <View className="flex-row items-center justify-center px-4">
             <Text className="text-3xl text-emerald-500 mr-2">{tab === 'fiat' ? '₦' : ''}</Text>
-            <TextInput scrollEnabled={false} 
+            <TextInput scrollEnabled={false}
               value={amount} onChangeText={setAmount} keyboardType="numeric"
-              className="text-4xl font-bold text-white text-center min-w-[50%] max-w-[80%] h-16" 
+              className="text-4xl font-bold text-white text-center min-w-[50%] max-w-[80%] h-16"
               placeholder="0.00" placeholderTextColor="#525252"
               adjustsFontSizeToFit={true}
               numberOfLines={1}
@@ -138,7 +138,7 @@ export default function TransferScreen({ navigation }) {
               </View>
             </View>
             <Text className="text-xs font-semibold text-neutral-400 mb-2 uppercase">Destination Address</Text>
-            <TextInput scrollEnabled={false} 
+            <TextInput scrollEnabled={false}
               value={address} onChangeText={setAddress}
               className="bg-neutral-950 border border-neutral-800 rounded-2xl px-4 py-3 text-white font-medium mb-2"
               placeholder="Paste wallet address" placeholderTextColor="#525252"
@@ -156,12 +156,12 @@ export default function TransferScreen({ navigation }) {
             </TouchableOpacity>
 
             <Text className="text-xs font-semibold text-neutral-400 mb-2 uppercase">Account Number</Text>
-            <TextInput scrollEnabled={false} 
+            <TextInput scrollEnabled={false}
               value={accountNumber} onChangeText={setAccountNumber} keyboardType="numeric" maxLength={10}
               className="bg-neutral-950 border border-neutral-800 rounded-2xl px-4 py-3 text-white font-medium"
               placeholder="Enter 10-digit NUBAN" placeholderTextColor="#525252"
             />
-            
+
             {accountNumber.length === 10 && (
               <View className="mt-4 flex-row items-center bg-neutral-950 p-3 rounded-xl border border-neutral-800">
                 {resolving ? <ActivityIndicator size="small" color="#10b981" /> : (
@@ -175,68 +175,68 @@ export default function TransferScreen({ navigation }) {
           </View>
         )}
 
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={handleTransfer}
           disabled={loading || parseFloat(balances[tab === 'fiat' ? 'NGN' : currency]) === 0}
           className={`mt-8 p-4 rounded-xl items-center flex-row justify-center ${parseFloat(balances[tab === 'fiat' ? 'NGN' : currency]) === 0 ? 'bg-neutral-800' : 'bg-emerald-500'}`}
         >
           {loading ? <ActivityIndicator color="#fff" /> : <Text className="font-bold text-lg text-white">Send Now</Text>}
         </TouchableOpacity>
-      
 
-      <Modal visible={showBankPicker} animationType="slide" transparent>
-        <View className="flex-1 justify-end bg-black/80">
-          <View className="bg-neutral-900 h-2/3 rounded-t-3xl p-4">
-            <View className="flex-row justify-between items-center mb-4">
-              <Text className="text-xl font-bold text-white">Select Bank</Text>
-              <TouchableOpacity onPress={() => setShowBankPicker(false)}><X color="#fff" size={24} /></TouchableOpacity>
+
+        <Modal visible={showBankPicker} animationType="slide" transparent>
+          <View className="flex-1 justify-end bg-black/80">
+            <View className="bg-neutral-900 h-2/3 rounded-t-3xl p-4">
+              <View className="flex-row justify-between items-center mb-4">
+                <Text className="text-xl font-bold text-white">Select Bank</Text>
+                <TouchableOpacity onPress={() => setShowBankPicker(false)}><X color="#fff" size={24} /></TouchableOpacity>
+              </View>
+              <TextInput scrollEnabled={false}
+                value={bankSearch} onChangeText={setBankSearch}
+                placeholder="Search bank name..." placeholderTextColor="#525252"
+                className="bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-white font-medium mb-4 h-14"
+              />
+              <FlatList
+                data={banks.filter(b => b.name.toLowerCase().includes(bankSearch.toLowerCase()))}
+                keyExtractor={item => item.code}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    onPress={() => { setSelectedBank(item); setShowBankPicker(false); setBankSearch(''); }}
+                    className="p-4 border-b border-neutral-800 flex-row items-center"
+                  >
+                    <Text className="text-white font-semibold">{item.name}</Text>
+                  </TouchableOpacity>
+                )}
+              />
             </View>
-            <TextInput scrollEnabled={false} 
-              value={bankSearch} onChangeText={setBankSearch}
-              placeholder="Search bank name..." placeholderTextColor="#525252"
-              className="bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-white font-medium mb-4 h-14"
-            />
-            <FlatList 
-              data={banks.filter(b => b.name.toLowerCase().includes(bankSearch.toLowerCase()))}
-              keyExtractor={item => item.code}
-              renderItem={({item}) => (
-                <TouchableOpacity 
-                  onPress={() => { setSelectedBank(item); setShowBankPicker(false); setBankSearch(''); }}
-                  className="p-4 border-b border-neutral-800 flex-row items-center"
+          </View>
+        </Modal>
+
+        <Modal visible={showCryptoPicker} animationType="fade" transparent>
+          <View className="flex-1 justify-center items-center bg-black/80 p-6">
+            <View className="bg-neutral-900 w-full rounded-[2rem] p-6 border border-neutral-800">
+              <View className="flex-row justify-between items-center mb-6">
+                <Text className="text-xl font-bold text-white">Select Asset</Text>
+                <TouchableOpacity onPress={() => setShowCryptoPicker(false)}><X color="#fff" size={24} /></TouchableOpacity>
+              </View>
+              {['USDT', 'BTC', 'ETH'].map(coin => (
+                <TouchableOpacity
+                  key={coin}
+                  onPress={() => {
+                    setCurrency(coin);
+                    setNetwork(coin === 'BTC' ? 'Bitcoin' : coin === 'ETH' ? 'ERC20' : 'TRC20');
+                    setShowCryptoPicker(false);
+                  }}
+                  className="p-4 border-b border-neutral-800 flex-row items-center justify-between"
                 >
-                  <Text className="text-white font-semibold">{item.name}</Text>
+                  <Text className="text-white font-bold text-lg">{coin}</Text>
+                  <Text className="text-neutral-500 font-medium">{balances[coin]} {coin}</Text>
                 </TouchableOpacity>
-              )}
-            />
-          </View>
-        </View>
-      </Modal>
-
-      <Modal visible={showCryptoPicker} animationType="fade" transparent>
-        <View className="flex-1 justify-center items-center bg-black/80 p-6">
-          <View className="bg-neutral-900 w-full rounded-[2rem] p-6 border border-neutral-800">
-            <View className="flex-row justify-between items-center mb-6">
-              <Text className="text-xl font-bold text-white">Select Asset</Text>
-              <TouchableOpacity onPress={() => setShowCryptoPicker(false)}><X color="#fff" size={24} /></TouchableOpacity>
+              ))}
             </View>
-            {['USDT', 'BTC', 'ETH'].map(coin => (
-              <TouchableOpacity 
-                key={coin}
-                onPress={() => { 
-                  setCurrency(coin); 
-                  setNetwork(coin === 'BTC' ? 'Bitcoin' : coin === 'ETH' ? 'ERC20' : 'TRC20'); 
-                  setShowCryptoPicker(false); 
-                }}
-                className="p-4 border-b border-neutral-800 flex-row items-center justify-between"
-              >
-                <Text className="text-white font-bold text-lg">{coin}</Text>
-                <Text className="text-neutral-500 font-medium">{balances[coin]} {coin}</Text>
-              </TouchableOpacity>
-            ))}
           </View>
-        </View>
-      </Modal>
-    </ScrollView>
-</KeyboardAvoidingView>
+        </Modal>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

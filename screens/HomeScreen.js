@@ -19,10 +19,10 @@ export default function HomeScreen({ navigation }) {
   const rates = useStore(state => state.rates);
   const marketData = useStore(state => state.marketData);
   const fetchMarketData = useStore(state => state.fetchMarketData);
-  
+
   const [showBalance, setShowBalance] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  
+
   const formatNGN = (amount) => new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount || 0);
 
   const onRefresh = React.useCallback(async () => {
@@ -45,98 +45,114 @@ export default function HomeScreen({ navigation }) {
   const isZeroBalance = totalNgnBalance === 0;
 
   return (
-    <ScrollView 
-      className="flex-1 bg-black px-5 py-6"
+    <ScrollView
+      className="flex-1 bg-[#09090B] px-6 py-6 pt-12"
+      showsVerticalScrollIndicator={false}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10b981" />}
     >
-      <View className="flex-row justify-between items-center mb-8">
-        <TouchableOpacity onPress={() => navigation.navigate('Settings')} className="flex-row items-center">
-          <View className="w-12 h-12 rounded-full bg-emerald-500 mr-3 items-center justify-center shadow-lg shadow-emerald-500/20 overflow-hidden">
-             <Text className="text-white font-bold text-lg">{user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}</Text>
-          </View>
-          <View>
-            <Text className="text-[10px] text-neutral-400 font-bold tracking-widest uppercase mb-0.5">Welcome back</Text>
-            <Text className="text-lg text-white font-bold">{user?.full_name || 'User'}</Text>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity className="w-12 h-12 rounded-full bg-neutral-900 items-center justify-center border border-neutral-800">
-          <Bell color="#fff" size={20} />
-          {!isZeroBalance && <View className="absolute top-3 right-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-neutral-900" />}
-        </TouchableOpacity>
-      </View>
+      {/* Header Section */}
+      <View className="flex-row justify-between items-center mb-10 mt-4">
+        <View className="flex-1">
+          <Text className="text-neutral-500 font-semibold text-xs tracking-widest uppercase mb-1">Overview</Text>
+          <Text className="text-2xl text-white font-bold tracking-tight">{user?.full_name || 'Portfolio'}</Text>
+        </View>
 
-      <View className="p-7 rounded-[2rem] bg-emerald-700 mb-8 overflow-hidden shadow-2xl shadow-emerald-900/20">
-        <Image 
-          source={{ uri: 'https://www.transparenttextures.com/patterns/stardust.png' }} 
-          className="absolute inset-0 w-full h-full opacity-40" 
-          resizeMode="repeat"
-        />
-        <View className="flex-row justify-between items-center mb-3">
-          <Text className="text-sm font-bold text-emerald-100 uppercase tracking-widest z-10">Total Balance</Text>
-          <TouchableOpacity onPress={() => setShowBalance(!showBalance)} className="p-1 z-10">
-            {showBalance ? <EyeOff color="#fff" size={20} /> : <Eye color="#fff" size={20} />}
+        <View className="flex-row items-center space-x-3">
+          <TouchableOpacity className="w-11 h-11 rounded-full bg-neutral-900 border border-neutral-800 items-center justify-center relative">
+            <Bell color="#a3a3a3" size={20} />
+            {!isZeroBalance && <View className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-neutral-900" />}
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+            <View className="w-11 h-11 rounded-full bg-emerald-500/10 border border-emerald-500/30 items-center justify-center overflow-hidden">
+              <Text className="text-emerald-400 font-bold text-lg">{user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}</Text>
+            </View>
           </TouchableOpacity>
         </View>
-        <Text className="text-[42px] font-extrabold text-white mb-8 tracking-tight z-10">
+      </View>
+
+      {/* Hero Balance Section */}
+      <View className="items-center mb-10">
+        <TouchableOpacity
+          onPress={() => setShowBalance(!showBalance)}
+          className="flex-row items-center bg-neutral-900/60 px-4 py-2 rounded-full border border-neutral-800/60 mb-5"
+        >
+          <Text className="text-neutral-400 text-xs font-bold uppercase tracking-widest mr-2">Total Balance</Text>
+          {showBalance ? <EyeOff color="#9ca3af" size={14} /> : <Eye color="#9ca3af" size={14} />}
+        </TouchableOpacity>
+
+        <Text className="text-[48px] font-black text-white tracking-tighter mb-2">
           {showBalance ? formatNGN(totalNgnBalance) : '••••••••'}
         </Text>
-        
+      </View>
+
+      {/* Quick Actions (Unified Pill Design) */}
+      <View className="mb-12">
         {isZeroBalance ? (
-          <TouchableOpacity onPress={() => navigation.navigate('Receive')} className="w-full bg-emerald-500 py-4 rounded-2xl items-center justify-center flex-row shadow-lg shadow-emerald-500/30  z-10">
+          <TouchableOpacity onPress={() => navigation.navigate('Receive')} className="w-full bg-emerald-500 py-4 rounded-full items-center justify-center flex-row shadow-lg shadow-emerald-500/20">
             <PlusCircle color="#fff" size={20} strokeWidth={2.5} className="mr-2" />
             <Text className="text-white font-bold text-base tracking-wide">Fund Wallet to Start</Text>
           </TouchableOpacity>
         ) : (
-          <View className="flex-row space-x-3 z-10">
-            <TouchableOpacity onPress={() => navigation.navigate('Receive')} className="flex-1 bg-neutral-900/80 py-3.5 rounded-2xl items-center justify-center mr-2 border border-white/5 ">
-              <Download color="#fff" size={20} strokeWidth={2.5} />
-              <Text className="text-white text-xs font-bold mt-1.5 tracking-wide">Receive</Text>
+          <View className="flex-row bg-neutral-900/50 p-2 rounded-[2rem] border border-neutral-800/50">
+            <TouchableOpacity onPress={() => navigation.navigate('Receive')} className="flex-1 flex-row bg-transparent py-3.5 items-center justify-center rounded-[1.5rem]">
+              <Download color="#10b981" size={18} strokeWidth={2.5} className="mr-2" />
+              <Text className="text-white text-sm font-semibold tracking-wide">Receive</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Transfer')} className="flex-1 bg-emerald-500 py-3.5 rounded-2xl items-center justify-center mx-2 shadow-lg shadow-emerald-500/30 ">
-              <Send color="#fff" size={20} strokeWidth={2.5} />
-              <Text className="text-white text-xs font-bold mt-1.5 tracking-wide">Send</Text>
+
+            <TouchableOpacity onPress={() => navigation.navigate('Transfer')} className="flex-1 flex-row bg-emerald-500 py-3.5 items-center justify-center rounded-[1.5rem] shadow-sm shadow-emerald-500/20">
+              <Send color="#fff" size={18} strokeWidth={2.5} className="mr-2" />
+              <Text className="text-white text-sm font-semibold tracking-wide">Send</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Swap', { initialAsset: 'USDT' })} className="flex-1 bg-neutral-900/80 py-3.5 rounded-2xl items-center justify-center ml-2 border border-white/5 ">
-              <ArrowRightLeft color="#fff" size={20} strokeWidth={2.5} />
-              <Text className="text-white text-xs font-bold mt-1.5 tracking-wide">Swap</Text>
+
+            <TouchableOpacity onPress={() => navigation.navigate('Swap', { initialAsset: 'USDT' })} className="flex-1 flex-row bg-transparent py-3.5 items-center justify-center rounded-[1.5rem]">
+              <ArrowRightLeft color="#10b981" size={18} strokeWidth={2.5} className="mr-2" />
+              <Text className="text-white text-sm font-semibold tracking-wide">Swap</Text>
             </TouchableOpacity>
           </View>
         )}
       </View>
 
+      {/* Assets List */}
       <View className="mb-12">
-        <View className="flex-row justify-between items-center mb-5">
-          <Text className="text-lg text-white font-bold">Your Assets</Text>
-        </View>
-        
-        {ASSETS.map(asset => {
-          const change = !asset.isFiat && marketData[asset.symbol] ? marketData[asset.symbol].change24h : 0;
-          const isPositive = change >= 0;
-          
-          return (
-            <TouchableOpacity 
-              key={asset.symbol} 
-              onPress={() => navigation.navigate(asset.isFiat ? 'Receive' : 'Swap', { initialAsset: asset.symbol })} 
-              className="flex-row justify-between items-center p-4 bg-neutral-900 rounded-[1.5rem] border border-neutral-800 mb-3"
-            >
-              <View className="flex-row items-center">
-                <Image source={{ uri: asset.logo }} className="w-12 h-12 rounded-full mr-4 bg-white" />
-                <View>
-                  <Text className="text-white font-bold text-base">{asset.name}</Text>
-                  <Text className="text-neutral-400 text-sm mt-0.5 font-medium">{balances[asset.symbol]?.toLocaleString(undefined, {maximumFractionDigits: 4})} {asset.symbol}</Text>
+        <Text className="text-xl text-white font-semibold tracking-tight mb-5">Your Assets</Text>
+
+        <View className="space-y-3">
+          {ASSETS.map(asset => {
+            const change = !asset.isFiat && marketData[asset.symbol] ? marketData[asset.symbol].change24h : 0;
+            const isPositive = change >= 0;
+
+            return (
+              <TouchableOpacity
+                key={asset.symbol}
+                onPress={() => navigation.navigate(asset.isFiat ? 'Receive' : 'Swap', { initialAsset: asset.symbol })}
+                className="flex-row justify-between items-center p-4 bg-white/[0.02] rounded-[1.5rem] border border-white/5"
+              >
+                <View className="flex-row items-center">
+                  <Image source={{ uri: asset.logo }} className="w-11 h-11 rounded-full mr-4 bg-white/10" />
+                  <View>
+                    <Text className="text-white font-bold text-base">{asset.name}</Text>
+                    <Text className="text-neutral-500 text-xs mt-1 font-medium">
+                      {balances[asset.symbol]?.toLocaleString(undefined, { maximumFractionDigits: 4 })} {asset.symbol}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-              <View className="items-end">
-                <Text className="text-white font-bold text-base">{formatNGN((balances[asset.symbol] || 0) * (rates[asset.symbol] || 1))}</Text>
-                {!asset.isFiat && (
-                  <Text className={`text-xs font-bold mt-0.5 ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
-                    {isPositive ? '+' : ''}{change?.toFixed(2) || '0.00'}%
+                <View className="items-end">
+                  <Text className="text-white font-bold text-base tracking-tight">
+                    {formatNGN((balances[asset.symbol] || 0) * (rates[asset.symbol] || 1))}
                   </Text>
-                )}
-              </View>
-            </TouchableOpacity>
-          );
-        })}
+                  {!asset.isFiat && (
+                    <View className={`mt-1 px-2 py-0.5 rounded-full ${isPositive ? 'bg-emerald-500/10' : 'bg-red-500/10'}`}>
+                      <Text className={`text-[10px] font-bold ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {isPositive ? '+' : ''}{change?.toFixed(2) || '0.00'}%
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
     </ScrollView>
   );

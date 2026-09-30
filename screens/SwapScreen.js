@@ -78,21 +78,20 @@ export default function SwapScreen({ route, navigation }) {
   return (
     <SafeAreaView className="flex-1 bg-black">
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? -64 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
       >
         <ScrollView
           contentContainerStyle={{
             flexGrow: 1,
             paddingHorizontal: 20,
-            paddingTop: 60,
-            paddingBottom: 40,
-            justifyContent: "center"
+            paddingTop: 24, // Standard padding to clear the immediate top
+            paddingBottom: 40 // Breathing room at the bottom
           }}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <Text className="text-2xl font-bold mb-10 text-center text-white">Instant Swap</Text>
+          <Text className="text-2xl font-bold mb-8 text-center text-white">Instant Swap</Text>
 
           { }
           <View className={`bg-neutral-900 p-6 rounded-[2rem] border ${parsedPay > fromBalance ? 'border-red-500/50' : 'border-neutral-800'} mb-2`}>
@@ -135,7 +134,7 @@ export default function SwapScreen({ route, navigation }) {
           <View className="bg-neutral-900 p-6 rounded-[2rem] border border-neutral-800 mt-2">
             <Text className="text-xs text-neutral-400 font-medium uppercase mb-3">You Receive</Text>
             <View className="flex-row justify-between items-center h-16">
-              <Text className="flex-1 text-4xl font-bold text-emerald-400 h-full" style={{ includeFontPadding: false, paddingVertical: 0 }} numberOfLines={1}>
+              <Text className="flex-1 text-4xl font-bold text-emerald-400 h-full" style={{ includeFontPadding: false, paddingVertical: 0, textAlignVertical: 'center' }} numberOfLines={1}>
                 {receiveAmount ? receiveAmount.toLocaleString(undefined, { maximumFractionDigits: 6 }) : '0.00'}
               </Text>
               <TouchableOpacity onPress={() => openSelector('receive')} className="flex-row items-center bg-neutral-950 px-3 py-2 rounded-full border border-neutral-800 ml-4">
@@ -159,38 +158,38 @@ export default function SwapScreen({ route, navigation }) {
             }
           </TouchableOpacity>
 
-          { }
-          <Modal visible={showSelector.isOpen} transparent animationType="slide">
-            <View className="flex-1 justify-end bg-black/60">
-              <View className="bg-neutral-900 rounded-t-[2rem] h-2/3 p-6">
-                <View className="flex-row justify-between items-center mb-6">
-                  <Text className="text-xl font-bold text-white">Select Asset</Text>
-                  <TouchableOpacity onPress={() => setShowSelector({ isOpen: false })} className="p-2 bg-neutral-800 rounded-full">
-                    <X color="#9ca3af" size={20} />
-                  </TouchableOpacity>
-                </View>
-                <ScrollView className="flex-1">
-                  {ASSETS.map(asset => (
-                    <TouchableOpacity
-                      key={asset.symbol} onPress={() => selectAsset(asset)}
-                      className="flex-row justify-between items-center p-4 rounded-2xl mb-2 bg-neutral-950 border border-neutral-800/50"
-                    >
-                      <View className="flex-row items-center">
-                        <Image source={{ uri: asset.logo }} className="w-10 h-10 rounded-full mr-4 bg-white" />
-                        <View>
-                          <Text className="text-white font-semibold">{asset.name}</Text>
-                          <Text className="text-neutral-500 text-xs">{asset.symbol}</Text>
-                        </View>
-                      </View>
-                      <Text className="text-white font-semibold">{(balances[asset.symbol] || 0).toLocaleString(undefined, { maximumFractionDigits: 4 })}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            </View>
-          </Modal>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal visible={showSelector.isOpen} transparent animationType="slide">
+        <View className="flex-1 justify-end bg-black/60">
+          <View className="bg-neutral-900 rounded-t-[2rem] h-2/3 p-6">
+            <View className="flex-row justify-between items-center mb-6">
+              <Text className="text-xl font-bold text-white">Select Asset</Text>
+              <TouchableOpacity onPress={() => setShowSelector({ isOpen: false })} className="p-2 bg-neutral-800 rounded-full">
+                <X color="#9ca3af" size={20} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView className="flex-1">
+              {ASSETS.map(asset => (
+                <TouchableOpacity
+                  key={asset.symbol} onPress={() => selectAsset(asset)}
+                  className="flex-row justify-between items-center p-4 rounded-2xl mb-2 bg-neutral-950 border border-neutral-800/50"
+                >
+                  <View className="flex-row items-center">
+                    <Image source={{ uri: asset.logo }} className="w-10 h-10 rounded-full mr-4 bg-white" />
+                    <View>
+                      <Text className="text-white font-semibold">{asset.name}</Text>
+                      <Text className="text-neutral-500 text-xs">{asset.symbol}</Text>
+                    </View>
+                  </View>
+                  <Text className="text-white font-semibold">{(balances[asset.symbol] || 0).toLocaleString(undefined, { maximumFractionDigits: 4 })}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

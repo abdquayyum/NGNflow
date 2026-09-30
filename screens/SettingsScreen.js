@@ -143,9 +143,9 @@ export default function SettingsScreen() {
           </View>
           <View className="p-5 flex-1">
             <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Full Name</Text>
-            <TextInput style={{ lineHeight: undefined, includeFontPadding: false }} value={fullName} onChangeText={setFullName} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="Enter your full name" />
+            <TextInput  value={fullName} onChangeText={setFullName} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="Enter your full name" />
             <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Email Address (Read Only)</Text>
-            <TextInput style={{ lineHeight: undefined, includeFontPadding: false }} value={user?.email || ''} editable={false} className="bg-neutral-900/50 text-neutral-500 p-4 rounded-2xl border border-neutral-800 mb-6" />
+            <TextInput  value={user?.email || ''} editable={false} className="bg-neutral-900/50 text-neutral-500 p-4 rounded-2xl border border-neutral-800 mb-6" />
           </View>
           <View className="p-5">
             <TouchableOpacity onPress={saveProfile} disabled={loading} className="bg-emerald-500 h-14 rounded-2xl items-center justify-center">
@@ -167,13 +167,13 @@ export default function SettingsScreen() {
           <ScrollView className="p-5 flex-1">
             <Text className="text-neutral-400 mb-6 leading-5">To unlock higher transaction limits and virtual cards, please provide your personal identity details.</Text>
             <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Title (Mr/Mrs/Ms)</Text>
-            <TextInput style={{ lineHeight: undefined, includeFontPadding: false }} value={title} onChangeText={setTitle} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="e.g. Mr" />
+            <TextInput  value={title} onChangeText={setTitle} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="e.g. Mr" />
             
             <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Gender (Male/Female)</Text>
-            <TextInput style={{ lineHeight: undefined, includeFontPadding: false }} value={gender} onChangeText={setGender} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="e.g. Male" />
+            <TextInput  value={gender} onChangeText={setGender} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="e.g. Male" />
             
             <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Date of Birth (YYYY-MM-DD)</Text>
-            <TextInput style={{ lineHeight: undefined, includeFontPadding: false }} value={dob} onChangeText={setDob} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="1990-01-01" />
+            <TextInput  value={dob} onChangeText={setDob} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="1990-01-01" />
           </ScrollView>
           <View className="p-5">
             <TouchableOpacity onPress={saveKYC} disabled={loading} className="bg-emerald-500 h-14 rounded-2xl items-center justify-center">
@@ -194,7 +194,7 @@ export default function SettingsScreen() {
           </View>
           <View className="p-5 flex-1">
             <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">New Password</Text>
-            <TextInput style={{ lineHeight: undefined, includeFontPadding: false }} value={newPassword} onChangeText={setNewPassword} secureTextEntry className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="Enter new password" />
+            <TextInput  value={newPassword} onChangeText={setNewPassword} secureTextEntry className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="Enter new password" />
           </View>
           <View className="p-5">
             <TouchableOpacity onPress={savePassword} disabled={loading || newPassword.length < 6} className={`h-14 rounded-2xl items-center justify-center ${newPassword.length < 6 ? 'bg-neutral-800' : 'bg-emerald-500'}`}>
