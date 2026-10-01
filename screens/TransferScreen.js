@@ -117,10 +117,10 @@ export default function TransferScreen({ navigation, route }) {
   const [bankSearch, setBankSearch] = useState('');
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={Platform.OS === "ios" ? -64 : 0} style={{ flex: 1 }} className="bg-black">
+    <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={20} style={{ flex: 1 }} className="bg-black">
       <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 20, paddingTop: 60 }} keyboardShouldPersistTaps="handled">
-
-        <Text className="text-2xl font-bold mb-6 text-center text-white">Transfer</Text>
+        <View style={{ flex: 1 }} />
+<Text className="text-2xl font-bold mb-6 text-center text-white">Transfer</Text>
 
         <View className="flex-row bg-neutral-900 rounded-xl p-1 mb-8">
           <TouchableOpacity onPress={() => setTab('crypto')} className={`flex-1 py-3 items-center rounded-lg ${tab === 'crypto' ? 'bg-neutral-800' : ''}`}>
@@ -265,6 +265,7 @@ export default function TransferScreen({ navigation, route }) {
             </View>
           </View>
         </Modal>
+        <View style={{ flex: 1 }} />
       </ScrollView>
     </KeyboardAvoidingView>
   );

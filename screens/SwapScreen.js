@@ -96,10 +96,7 @@ export default function SwapScreen({ route, navigation }) {
 
   return (
     <SafeAreaView className="flex-1 bg-black">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
-      >
+      <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={20} style={{ flex: 1 }} className="bg-black">
         <ScrollView
           contentContainerStyle={{
             flexGrow: 1,
@@ -110,7 +107,8 @@ export default function SwapScreen({ route, navigation }) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Text className="text-2xl font-bold mb-8 text-center text-white">Instant Swap</Text>
+        <View style={{ flex: 1 }} />
+<Text className="text-2xl font-bold mb-8 text-center text-white">Instant Swap</Text>
 
           { }
           <View className={`bg-neutral-900 p-6 rounded-[2rem] border ${parsedPay > fromBalance ? 'border-red-500/50' : 'border-neutral-800'} mb-2`}>
@@ -176,8 +174,8 @@ export default function SwapScreen({ route, navigation }) {
               </Text>
             }
           </TouchableOpacity>
-
-        </ScrollView>
+        <View style={{ flex: 1 }} />
+      </ScrollView>
       </KeyboardAvoidingView>
 
       <Modal visible={showSelector.isOpen} transparent animationType="slide">
