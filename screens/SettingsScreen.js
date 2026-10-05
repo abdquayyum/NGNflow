@@ -6,6 +6,36 @@ import axios from 'axios';
 
 const API_URL = 'http://156.232.88.218:8001/api/v1';
 
+
+const DropdownField = ({ label, value, options, onSelect }) => {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <View className="mb-6">
+      <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">{label}</Text>
+      <TouchableOpacity 
+        onPress={() => setOpen(!open)}
+        className="bg-neutral-900 flex-row justify-between items-center p-4 rounded-2xl border border-neutral-800"
+      >
+        <Text className={value ? "text-white" : "text-neutral-500"}>{value || `Select ${label}`}</Text>
+        <ChevronDown color="#737373" size={20} />
+      </TouchableOpacity>
+      {open && (
+        <View className="mt-2 w-full bg-neutral-900 rounded-2xl border border-neutral-800 overflow-hidden">
+          {options.map((opt, i) => (
+            <TouchableOpacity 
+              key={i} 
+              onPress={() => { onSelect(opt); setOpen(false); }}
+              className={`p-4 ${i !== options.length - 1 ? 'border-b border-neutral-800' : ''}`}
+            >
+              <Text className="text-white">{opt}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+};
+
 export default function SettingsScreen() {
   const { user, token, logout, fetchUserData } = useStore();
   const [activeModal, setActiveModal] = useState(null); // 'profile', 'kyc', 'password', 'notifications', 'help'
