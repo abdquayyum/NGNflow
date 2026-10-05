@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, Alert, Modal, TextInput, Switch, Linking, ActivityIndicator } from 'react-native';
-import { User, Shield, Bell, Key, LogOut, ChevronRight, HelpCircle, X, Check, Mail, Globe } from 'lucide-react-native';
+import { User, Shield, Bell, Key, LogOut, ChevronRight, HelpCircle, X, Check, Mail, Globe, ChevronDown } from 'lucide-react-native';
 import useStore from '../store/useStore';
 import axios from 'axios';
 
