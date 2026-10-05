@@ -166,14 +166,23 @@ export default function SettingsScreen() {
           </View>
           <ScrollView className="p-5 flex-1">
             <Text className="text-neutral-400 mb-6 leading-5">To unlock higher transaction limits and virtual cards, please provide your personal identity details.</Text>
-            <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Title (Mr/Mrs/Ms)</Text>
-            <TextInput  value={title} onChangeText={setTitle} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="e.g. Mr" />
             
-            <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Gender (Male/Female)</Text>
-            <TextInput  value={gender} onChangeText={setGender} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="e.g. Male" />
+            <DropdownField 
+              label="Title" 
+              value={title} 
+              options={["Mr", "Mrs", "Ms", "Miss", "Dr", "Prof", "Rev"]} 
+              onSelect={setTitle} 
+            />
+            
+            <DropdownField 
+              label="Gender" 
+              value={gender} 
+              options={["Male", "Female"]} 
+              onSelect={setGender} 
+            />
             
             <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Date of Birth (YYYY-MM-DD)</Text>
-            <TextInput  value={dob} onChangeText={setDob} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="1990-01-01" />
+            <TextInput  value={dob} onChangeText={setDob} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="1990-01-01" keyboardType="numeric" />
           </ScrollView>
           <View className="p-5">
             <TouchableOpacity onPress={saveKYC} disabled={loading} className="bg-emerald-500 h-14 rounded-2xl items-center justify-center">
