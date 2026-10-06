@@ -87,7 +87,10 @@ const useStore = create((set, get) => ({
   swap: async (fromAsset, toAsset, amount) => {
     set({ loading: true, error: null });
     try {
-      await axios.post(`${API_URL}/crypto/swap?from_currency=${fromAsset}&to_currency=${toAsset}&amount=${amount}`, {}, {
+      const isFiat = fromAsset === 'NGN' || toAsset === 'NGN';
+      const endpoint = isFiat ? `${API_URL}/fiat/swap` : `${API_URL}/crypto/swap`;
+      
+      await axios.post(`${endpoint}?from_currency=${fromAsset}&to_currency=${toAsset}&amount=${amount}`, {}, {
         headers: { Authorization: `Bearer ${get().token}` }
       });
       await get().fetchUserData(get().token);
