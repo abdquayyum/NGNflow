@@ -49,6 +49,7 @@ export default function SettingsScreen() {
   const [title, setTitle] = useState(user?.title || '');
   const [gender, setGender] = useState(user?.gender || '');
   const [bvn, setBvn] = useState(user?.bvn || '');
+  const [phone, setPhone] = useState(user?.phone || '');
 
   // Password State
   const [newPassword, setNewPassword] = useState('');
