@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, Alert, Modal, TextInput, Switch, Linking, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, Alert, Modal, TextInput, Switch, Linking, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { User, Shield, Bell, Key, LogOut, ChevronRight, HelpCircle, X, Check, Mail, Globe, ChevronDown } from 'lucide-react-native';
 import useStore from '../store/useStore';
 import axios from 'axios';
@@ -209,7 +209,8 @@ export default function SettingsScreen() {
               <X color="#fff" size={20} />
             </TouchableOpacity>
           </View>
-          <ScrollView className="p-5 flex-1">
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+          <ScrollView className="p-5 flex-1" contentContainerStyle={{ paddingBottom: 40 }}>
             <Text className="text-neutral-400 mb-6 leading-5">To unlock higher transaction limits and virtual cards, please provide your personal identity details.</Text>
             
             <DropdownField 
@@ -236,11 +237,12 @@ export default function SettingsScreen() {
             <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Date of Birth (YYYY-MM-DD)</Text>
             <TextInput  value={dob} onChangeText={setDob} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="1990-01-01" keyboardType="numeric" />
           </ScrollView>
-          <View className="p-5">
+          <View className="p-5 border-t border-neutral-900 bg-neutral-950">
             <TouchableOpacity onPress={saveKYC} disabled={loading} className="bg-emerald-500 h-14 rounded-2xl items-center justify-center">
               {loading ? <ActivityIndicator color="#fff" /> : <Text className="text-white font-bold text-lg">Submit KYC</Text>}
             </TouchableOpacity>
           </View>
+          </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
 
