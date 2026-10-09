@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, RefreshControl, Image, Alert } from 'react-native';
-import { Bell, EyeOff, Eye, Download, Send, ArrowRightLeft, PlusCircle } from 'lucide-react-native';
+import { Bell, EyeOff, Eye, Download, Send, ArrowRightLeft, PlusCircle, ChevronRight } from 'lucide-react-native';
 import useStore from '../store/useStore';
 import { registerForPushNotificationsAsync } from '../utils/pushNotifications';
 
@@ -53,6 +53,7 @@ export default function HomeScreen({ navigation }) {
       showsVerticalScrollIndicator={false}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10b981" />}
     >
+      
       {/* Header Section */}
       <View className="flex-row justify-between items-center mb-10 mt-4">
         <View className="flex-1">
@@ -73,6 +74,17 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </View>
+
+      {user?.kyc_status !== 'tier1' && (
+        <TouchableOpacity onPress={() => navigation.navigate('Settings')} className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-2xl mb-8 flex-row items-center">
+          <View className="flex-1">
+            <Text className="text-amber-500 font-bold mb-1 text-sm">Action Required: Verify Identity</Text>
+            <Text className="text-amber-500/80 text-xs leading-5 pr-4">You must complete KYC verification to unlock Naira deposits and withdrawals.</Text>
+          </View>
+          <ChevronRight color="#f59e0b" size={20} />
+        </TouchableOpacity>
+      )}
+
 
       {/* Hero Balance Section */}
       <View className="items-center mb-10">
