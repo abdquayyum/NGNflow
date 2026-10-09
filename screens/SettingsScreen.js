@@ -186,7 +186,7 @@ export default function SettingsScreen() {
               <X color="#fff" size={20} />
             </TouchableOpacity>
           </View>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} className="flex-1">
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}  className="flex-1">
           <View className="p-5 flex-1">
             <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Full Name</Text>
             <TextInput  value={fullName} onChangeText={setFullName} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="Enter your full name" />
@@ -211,7 +211,7 @@ export default function SettingsScreen() {
               <X color="#fff" size={20} />
             </TouchableOpacity>
           </View>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} className="flex-1">
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}  className="flex-1">
           <ScrollView className="p-5 flex-1" contentContainerStyle={{ paddingBottom: 40 }}>
             <Text className="text-neutral-400 mb-6 leading-5">To unlock higher transaction limits and virtual cards, please provide your personal identity details.</Text>
             
@@ -257,7 +257,7 @@ export default function SettingsScreen() {
               <X color="#fff" size={20} />
             </TouchableOpacity>
           </View>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} className="flex-1">
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}  className="flex-1">
           <View className="p-5 flex-1">
             <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">New Password</Text>
             <TextInput  value={newPassword} onChangeText={setNewPassword} secureTextEntry className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="Enter new password" />

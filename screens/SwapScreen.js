@@ -9,7 +9,7 @@ import {
   Alert,
   Image,
   Platform,
-  KeyboardAvoidingView,
+  KeyboardAvoidingView, Platform,
   ScrollView,
   SafeAreaView
 } from 'react-native';
@@ -132,7 +132,7 @@ export default function SwapScreen({ route, navigation }) {
 
   return (
     <SafeAreaView className="flex-1 bg-black">
-      <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0} style={{ flex: 1 }} className="bg-black">
+      <KeyboardAvoidingView, Platform behavior={Platform.OS === 'ios' ? 'padding' : undefined}  style={{ flex: 1 }} className="bg-black">
         <ScrollView
           contentContainerStyle={{
             flexGrow: 1,
@@ -212,7 +212,7 @@ export default function SwapScreen({ route, navigation }) {
           </TouchableOpacity>
         <View style={{ flex: 1 }} />
       </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAvoidingView, Platform>
 
       <Modal visible={showSelector.isOpen} transparent animationType="slide">
         <View className="flex-1 justify-end bg-black/60">
