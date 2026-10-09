@@ -103,7 +103,7 @@ export default function SwapScreen({ route, navigation }) {
 
   return (
     <SafeAreaView className="flex-1 bg-black">
-      <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={20} style={{ flex: 1 }} className="bg-black">
+      <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0} style={{ flex: 1 }} className="bg-black">
         <ScrollView
           contentContainerStyle={{
             flexGrow: 1,

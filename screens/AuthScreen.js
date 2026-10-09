@@ -50,7 +50,7 @@ export default function AuthScreen() {
     <SafeAreaView className="flex-1 bg-neutral-950">
       <KeyboardAvoidingView
         behavior="padding"
-        keyboardVerticalOffset={20}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
         style={{ flex: 1 }}
       >
         <ScrollView
