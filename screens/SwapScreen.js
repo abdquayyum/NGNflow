@@ -66,8 +66,15 @@ export default function SwapScreen({ route, navigation }) {
   const receiveAmount = parsedPay * (payRate / receiveRate);
   const isValid = parsedPay > 0 && parsedPay <= fromBalance;
 
+
   const handleSwap = async () => {
     if (!isValid) return;
+
+    if (payAsset.symbol === 'NGN' && !['USDT', 'BTC', 'USDT_TRC20', 'USDT_ERC20', 'USDT_BEP20', 'USDT_POLYGON'].includes(receiveAsset.symbol)) {
+      Alert.alert('Unsupported Route', 'You can only swap NGN to USDT or BTC directly. To get other cryptocurrencies, swap to USDT or BTC first, then swap to your desired coin.');
+      return;
+    }
+
     await swap(payAsset.symbol, receiveAsset.symbol, parsedPay);
     if (!error) {
       Alert.alert('Success', `Swapped ${parsedPay} ${payAsset.symbol} to ${receiveAmount.toFixed(4)} ${receiveAsset.symbol}`);

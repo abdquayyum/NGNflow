@@ -48,6 +48,7 @@ export default function SettingsScreen() {
   const [dob, setDob] = useState(user?.date_of_birth || '');
   const [title, setTitle] = useState(user?.title || '');
   const [gender, setGender] = useState(user?.gender || '');
+  const [bvn, setBvn] = useState(user?.bvn || '');
 
   // Password State
   const [newPassword, setNewPassword] = useState('');
@@ -79,10 +80,11 @@ export default function SettingsScreen() {
   };
 
   const saveKYC = async () => {
-    if (!dob || !title || !gender) return Alert.alert('Error', 'Please fill all KYC fields');
+    if (!dob || !title || !gender || !bvn) return Alert.alert('Error', 'Please fill all KYC fields');
+    if (bvn.length !== 11) return Alert.alert('Error', 'BVN must be exactly 11 digits');
     setLoading(true);
     try {
-      await axios.post(`${API_URL}/user/kyc`, { date_of_birth: dob, title, gender }, {
+      await axios.post(`${API_URL}/user/kyc`, { date_of_birth: dob, title, gender, bvn }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       await fetchUserData(token);
@@ -144,7 +146,7 @@ export default function SettingsScreen() {
           <Text className="text-xs font-bold text-neutral-500 uppercase px-5 mb-2">Account</Text>
           <View className="border-t border-neutral-800">
             <SettingRow icon={User} titleText="Personal Information" subtitle="Update your profile details" onPress={() => { setFullName(user?.full_name || ''); setActiveModal('profile'); }} />
-            <SettingRow icon={Shield} titleText="Identity Verification (KYC)" subtitle="Upgrade your limits" onPress={() => { setDob(user?.date_of_birth || ''); setTitle(user?.title || ''); setGender(user?.gender || ''); setActiveModal('kyc'); }} />
+            <SettingRow icon={Shield} titleText="Identity Verification (KYC)" subtitle="Upgrade your limits" onPress={() => { setDob(user?.date_of_birth || ''); setTitle(user?.title || ''); setGender(user?.gender || ''); setBvn(user?.bvn || ''); setActiveModal('kyc'); }} />
           </View>
         </View>
 
@@ -211,6 +213,9 @@ export default function SettingsScreen() {
               onSelect={setGender} 
             />
             
+            
+            <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Bank Verification Number (BVN)</Text>
+            <TextInput value={bvn} onChangeText={setBvn} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="11-digit BVN" keyboardType="numeric" maxLength={11} />
             <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Date of Birth (YYYY-MM-DD)</Text>
             <TextInput  value={dob} onChangeText={setDob} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="1990-01-01" keyboardType="numeric" />
           </ScrollView>

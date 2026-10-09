@@ -22,6 +22,7 @@ const useStore = create((set, get) => ({
       if (token) {
         set({ token });
         await get().fetchUserData(token);
+      await get().fetchRates();
       }
     } catch (e) { console.error('Init error', e); }
   },
@@ -63,6 +64,7 @@ const useStore = create((set, get) => ({
       await SecureStore.setItemAsync('token', token);
       set({ token });
       await get().fetchUserData(token);
+      await get().fetchRates();
       set({ loading: false });
     } catch (error) {
       set({ error: error.response?.data?.detail || error.message, loading: false });

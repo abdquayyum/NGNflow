@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, RefreshControl, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, RefreshControl, Image, Alert } from 'react-native';
 import { Bell, EyeOff, Eye, Download, Send, ArrowRightLeft, PlusCircle } from 'lucide-react-native';
 import useStore from '../store/useStore';
 import { registerForPushNotificationsAsync } from '../utils/pushNotifications';
@@ -61,7 +61,7 @@ export default function HomeScreen({ navigation }) {
         </View>
 
         <View className="flex-row items-center space-x-3">
-          <TouchableOpacity className="w-11 h-11 rounded-full bg-neutral-900 border border-neutral-800 items-center justify-center relative">
+          <TouchableOpacity onPress={() => Alert.alert('Notifications', 'You have no new notifications right now.')} className="w-11 h-11 rounded-full bg-neutral-900 border border-neutral-800 items-center justify-center relative">
             <Bell color="#a3a3a3" size={20} />
             {!isZeroBalance && <View className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-neutral-900" />}
           </TouchableOpacity>
