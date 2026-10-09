@@ -80,18 +80,30 @@ export default function SettingsScreen() {
   };
 
   const saveKYC = async () => {
-    if (!dob || !title || !gender || !bvn) return Alert.alert('Error', 'Please fill all KYC fields');
+    if (!fullName || !dob || !title || !gender || !bvn || !phone) return Alert.alert('Error', 'Please fill all KYC fields');
     if (bvn.length !== 11) return Alert.alert('Error', 'BVN must be exactly 11 digits');
+    
+    let formattedPhone = phone.replace(/\D/g, '');
+    if (formattedPhone.startsWith('234')) formattedPhone = '0' + formattedPhone.slice(3);
+    if (formattedPhone.length !== 11) return Alert.alert('Error', 'Phone must be a valid 11-digit Nigerian number (e.g. 080...)');
+    
     setLoading(true);
     try {
-      await axios.post(`${API_URL}/user/kyc`, { date_of_birth: dob, title, gender, bvn }, {
+      await axios.post(`${API_URL}/user/kyc`, { 
+        full_name: fullName, 
+        date_of_birth: dob, 
+        title, 
+        gender, 
+        bvn, 
+        phone: formattedPhone 
+      }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       await fetchUserData(token);
       setActiveModal(null);
-      Alert.alert('Success', 'KYC Tier 1 Verified');
+      Alert.alert('KYC Verified', 'Your Identity was successfully verified and your Virtual Account is now live!');
     } catch (e) {
-      Alert.alert('Error', e.response?.data?.detail || e.message);
+      Alert.alert('KYC Verification Failed', e.response?.data?.detail || e.message);
     } finally { setLoading(false); }
   };
 
@@ -214,6 +226,10 @@ export default function SettingsScreen() {
             />
             
             
+            <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Legal Full Name (Must match BVN exactly)</Text>
+            <TextInput value={fullName} onChangeText={setFullName} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="First Last" />
+            <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Registered Phone Number</Text>
+            <TextInput value={phone} onChangeText={setPhone} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="080..." keyboardType="phone-pad" />
             <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Bank Verification Number (BVN)</Text>
             <TextInput value={bvn} onChangeText={setBvn} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="11-digit BVN" keyboardType="numeric" maxLength={11} />
             <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Date of Birth (YYYY-MM-DD)</Text>
