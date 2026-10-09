@@ -61,8 +61,12 @@ export default function HistoryScreen() {
                     <Text className="text-neutral-400 text-xs mt-0.5">{new Date(tx.created_at).toLocaleDateString()}</Text>
                   </View>
                 </View>
-                <View className="items-end">
-                  <Text className={`font-bold text-base ${getTextColor(tx.type)}`}>
+                <View className="items-end flex-shrink ml-2 max-w-[45%]">
+                  <Text 
+                    className={`font-bold text-base ${getTextColor(tx.type)}`}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                  >
                     {getPrefix(tx.type)}{tx.amount} {tx.currency}
                   </Text>
                   <Text className="text-neutral-500 text-xs mt-0.5 capitalize">{tx.status}</Text>
