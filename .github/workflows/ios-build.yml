@@ -30,7 +30,7 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
 
-- name: Build for iOS (Local on Runner)
+      - name: Build for iOS (Local on Runner)
         continue-on-error: true
         run: EAS_LOCAL_BUILD_SKIP_CLEANUP=1 EAS_NO_VCS=1 eas build --platform ios --local --non-interactive --output build.ipa > eas-build.log 2>&1 || true
 
