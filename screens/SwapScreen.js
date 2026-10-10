@@ -125,7 +125,7 @@ export default function SwapScreen({ route, navigation }) {
 
   return (
     <SafeAreaView className="flex-1 bg-black">
-      <KeyboardAvoidingView, Platform behavior={Platform.OS === 'ios' ? 'padding' : undefined}  style={{ flex: 1 }} className="bg-black">
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}  style={{ flex: 1 }} className="bg-black">
         <ScrollView
           contentContainerStyle={{
             flexGrow: 1,
@@ -205,7 +205,7 @@ export default function SwapScreen({ route, navigation }) {
           </TouchableOpacity>
         <View style={{ flex: 1 }} />
       </ScrollView>
-      </KeyboardAvoidingView, Platform>
+      </KeyboardAvoidingView>
 
       <Modal visible={showSelector.isOpen} transparent animationType="slide">
         <View className="flex-1 justify-end bg-black/60">
