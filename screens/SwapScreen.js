@@ -9,7 +9,7 @@ import {
   Alert,
   Image,
   Platform,
-  KeyboardAvoidingView, Platform,
+  KeyboardAvoidingView,
   ScrollView,
   SafeAreaView
 } from 'react-native';
