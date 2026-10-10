@@ -15,6 +15,9 @@
       "autoIncrement": true,
       "ios": {
         "image": "latest"
+      },
+      "env": {
+        "EAS_NO_NPM_CI": "1"
       }
     }
   },
