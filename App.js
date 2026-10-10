@@ -28,9 +28,13 @@ const Stack = createNativeStackNavigator();
 function BiometricLocker({ children }) {
   const [isUnlocked, setIsUnlocked] = React.useState(false);
   const [hasBiometrics, setHasBiometrics] = React.useState(null); // null = checking
-  const appState = React.useRef(AppState.currentState);
+  const isAuthenticating = React.useRef(false);
+  const wentToBackground = React.useRef(false);
 
-  const authenticate = async () => {
+  const authenticate = React.useCallback(async () => {
+    if (isAuthenticating.current) return;
+    isAuthenticating.current = true;
+
     try {
       const hw = await LocalAuthentication.hasHardwareAsync();
       const enrolled = await LocalAuthentication.isEnrolledAsync();
@@ -40,6 +44,8 @@ function BiometricLocker({ children }) {
         const result = await LocalAuthentication.authenticateAsync({
           promptMessage: 'Unlock NGNflow',
           fallbackLabel: 'Use Passcode',
+          disableDeviceFallback: false,
+          cancelLabel: 'Cancel',
         });
         if (result.success) {
           setIsUnlocked(true);
@@ -54,23 +60,29 @@ function BiometricLocker({ children }) {
     } catch (error) {
       console.warn('Biometric Error:', error);
       setIsUnlocked(true);
+    } finally {
+      isAuthenticating.current = false;
+      wentToBackground.current = false;
     }
-  };
+  }, []);
 
   React.useEffect(() => {
+    // Authenticate once on initial load
     authenticate();
 
     const subscription = AppState.addEventListener('change', nextAppState => {
-      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-        // App has come to the foreground!
+      if (nextAppState === 'background') {
+        // User genuinely went away from the app
+        wentToBackground.current = true;
+      } else if (nextAppState === 'active' && wentToBackground.current && !isAuthenticating.current) {
+        // User returned from background
         setIsUnlocked(false);
         authenticate();
       }
-      appState.current = nextAppState;
     });
 
     return () => subscription.remove();
-  }, []);
+  }, [authenticate]);
 
   if (hasBiometrics === null) {
     return <View className="flex-1 bg-black" />; // Loading state
@@ -123,28 +135,18 @@ export default function App() {
     <SafeAreaProvider className="flex-1 bg-black">
       <StatusBar barStyle="light-content" />
       <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false, animation: 'fade' }}>
-          {!isAuthenticated ? (
+        {!isAuthenticated ? (
+          <Stack.Navigator screenOptions={{ headerShown: false, animation: 'fade' }}>
             <Stack.Screen name="Auth" component={AuthScreen} />
-          ) : (
-            <>
-              <Stack.Screen name="MainTabs">
-                {props => (
-                  <BiometricLocker>
-                    <MainTabs {...props} />
-                  </BiometricLocker>
-                )}
-              </Stack.Screen>
-              <Stack.Screen name="Receive">
-                {props => (
-                  <BiometricLocker>
-                    <ReceiveScreen {...props} />
-                  </BiometricLocker>
-                )}
-              </Stack.Screen>
-            </>
-          )}
-        </Stack.Navigator>
+          </Stack.Navigator>
+        ) : (
+          <BiometricLocker>
+            <Stack.Navigator screenOptions={{ headerShown: false, animation: 'fade' }}>
+              <Stack.Screen name="MainTabs" component={MainTabs} />
+              <Stack.Screen name="Receive" component={ReceiveScreen} options={{ presentation: 'modal' }} />
+            </Stack.Navigator>
+          </BiometricLocker>
+        )}
       </NavigationContainer>
     </SafeAreaProvider>
   );
