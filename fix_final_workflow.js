@@ -1,4 +1,6 @@
-name: iOS Build & Submit
+const fs = require('fs');
+
+const content = `name: iOS Build & Submit
 
 on:
   push:
@@ -25,7 +27,7 @@ jobs:
         uses: expo/expo-github-action@v8
         with:
           eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+          token: \${{ secrets.EXPO_TOKEN }}
 
       - name: Build for iOS (Local on Runner)
         run: EAS_NO_NPM_CI=1 EAS_LOCAL_BUILD_SKIP_CLEANUP=1 EAS_NO_VCS=1 eas build --platform ios --local --non-interactive --output build.ipa
@@ -43,3 +45,7 @@ jobs:
       - name: Dump Xcode Logs
         if: failure()
         run: find /var/folders /tmp /Users -name "*.log" -type f 2>/dev/null -exec tail -n 200 {} +
+`;
+
+fs.writeFileSync('.github/workflows/ios-build.yml', content);
+console.log("Restored standard, strict iOS Build workflow.");
