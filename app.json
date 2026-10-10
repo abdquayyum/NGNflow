@@ -41,13 +41,7 @@
         }
       ],
       "expo-asset",
-      "@react-native-community/datetimepicker",
-      [
-        "expo-local-authentication",
-        {
-          "faceIDPermission": "Allow NGNflow to use Face ID for secure biometric login and app unlocking."
-        }
-      ]
+      "@react-native-community/datetimepicker"
     ],
     "extra": {
       "eas": {
