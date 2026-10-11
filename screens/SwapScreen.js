@@ -11,7 +11,8 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
-  SafeAreaView
+  SafeAreaView,
+  Keyboard
 } from 'react-native';
 
 import { ArrowDown, ChevronRight, X } from 'lucide-react-native';
@@ -34,8 +35,33 @@ const USDT_NETWORKS = ['ERC20', 'TRC20', 'Polygon', 'BEP20'];
 
 export default function SwapScreen({ route, navigation }) {
   const [payAmount, setPayAmount] = useState('');
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const scrollViewRef = useRef(null);
 
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => {
+        setIsKeyboardVisible(true);
+        setTimeout(() => {
+          scrollViewRef.current?.scrollTo({ y: 100, animated: true });
+        }, 50);
+      }
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setIsKeyboardVisible(false);
+        setTimeout(() => {
+          scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+        }, 50);
+      }
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const initialSymbol = route.params?.initialAsset || 'USDT';
   const initialAssetObj = ASSETS.find(a => a.symbol === initialSymbol) || ASSETS[1];
@@ -128,7 +154,7 @@ export default function SwapScreen({ route, navigation }) {
     <SafeAreaView className="flex-1 bg-black">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? -25 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
         style={{ flex: 1 }}
         className="bg-black"
       >
@@ -136,9 +162,10 @@ export default function SwapScreen({ route, navigation }) {
           ref={scrollViewRef}
           contentContainerStyle={{
             flexGrow: 1,
+            justifyContent: isKeyboardVisible ? 'flex-start' : 'center',
             paddingHorizontal: 20,
-            paddingTop: 16,
-            paddingBottom: 60
+            paddingTop: isKeyboardVisible ? 12 : 20,
+            paddingBottom: isKeyboardVisible ? 60 : 20
           }}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"

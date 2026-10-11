@@ -188,7 +188,7 @@ export default function SettingsScreen() {
           </View>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? -25 : 0}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 75 : 0}
             className="flex-1"
           >
             <ScrollView className="p-5 flex-1" keyboardShouldPersistTaps="handled">
@@ -197,7 +197,7 @@ export default function SettingsScreen() {
               <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Email Address (Read Only)</Text>
               <TextInput value={user?.email || ''} editable={false} className="bg-neutral-900/50 text-neutral-500 p-4 rounded-2xl border border-neutral-800 mb-6" />
             </ScrollView>
-            <View className="p-5 pb-8 border-t border-neutral-900 bg-neutral-950">
+            <View className="p-5 pb-10 border-t border-neutral-900 bg-neutral-950">
               <TouchableOpacity onPress={saveProfile} disabled={loading} className="bg-emerald-500 h-14 rounded-2xl items-center justify-center">
                 {loading ? <ActivityIndicator color="#fff" /> : <Text className="text-white font-bold text-lg">Save Changes</Text>}
               </TouchableOpacity>
@@ -217,7 +217,7 @@ export default function SettingsScreen() {
           </View>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? -25 : 0}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 75 : 0}
             className="flex-1"
           >
             <ScrollView className="p-5 flex-1" contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
@@ -246,7 +246,7 @@ export default function SettingsScreen() {
               <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Date of Birth (YYYY-MM-DD)</Text>
               <TextInput value={dob} onChangeText={setDob} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="1990-01-01" keyboardType="numeric" />
             </ScrollView>
-            <View className="p-5 pb-8 border-t border-neutral-900 bg-neutral-950">
+            <View className="p-5 pb-10 border-t border-neutral-900 bg-neutral-950">
               <TouchableOpacity onPress={saveKYC} disabled={loading} className="bg-emerald-500 h-14 rounded-2xl items-center justify-center">
                 {loading ? <ActivityIndicator color="#fff" /> : <Text className="text-white font-bold text-lg">Submit KYC</Text>}
               </TouchableOpacity>
@@ -266,14 +266,14 @@ export default function SettingsScreen() {
           </View>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? -25 : 0}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 75 : 0}
             className="flex-1"
           >
             <ScrollView className="p-5 flex-1" keyboardShouldPersistTaps="handled">
               <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">New Password</Text>
               <TextInput value={newPassword} onChangeText={setNewPassword} secureTextEntry className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="Enter new password" />
             </ScrollView>
-            <View className="p-5 pb-8 border-t border-neutral-900 bg-neutral-950">
+            <View className="p-5 pb-10 border-t border-neutral-900 bg-neutral-950">
               <TouchableOpacity onPress={savePassword} disabled={loading || newPassword.length < 6} className={`h-14 rounded-2xl items-center justify-center ${newPassword.length < 6 ? 'bg-neutral-800' : 'bg-emerald-500'}`}>
                 {loading ? <ActivityIndicator color="#fff" /> : <Text className={`font-bold text-lg ${newPassword.length < 6 ? 'text-neutral-500' : 'text-white'}`}>Update Password</Text>}
               </TouchableOpacity>

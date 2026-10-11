@@ -10,7 +10,8 @@ import {
   Platform,
   Image,
   KeyboardAvoidingView,
-  ScrollView
+  ScrollView,
+  Keyboard
 } from 'react-native';
 
 import useStore from '../store/useStore';
@@ -20,12 +21,38 @@ export default function AuthScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const scrollViewRef = useRef(null);
 
   const { login, register, loading, error, clearError, init } = useStore();
 
   useEffect(() => {
     init();
+  }, []);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => {
+        setIsKeyboardVisible(true);
+        setTimeout(() => {
+          scrollViewRef.current?.scrollTo({ y: 150, animated: true });
+        }, 50);
+      }
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setIsKeyboardVisible(false);
+        setTimeout(() => {
+          scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+        }, 50);
+      }
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
   }, []);
 
   useEffect(() => {
@@ -49,7 +76,7 @@ export default function AuthScreen() {
 
   const handleInputFocus = () => {
     setTimeout(() => {
-      scrollViewRef.current?.scrollTo({ y: 130, animated: true });
+      scrollViewRef.current?.scrollTo({ y: 150, animated: true });
     }, 100);
   };
 
@@ -57,29 +84,30 @@ export default function AuthScreen() {
     <SafeAreaView className="flex-1 bg-neutral-950">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? -25 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
         style={{ flex: 1 }}
       >
         <ScrollView
           ref={scrollViewRef}
           contentContainerStyle={{
             flexGrow: 1,
+            justifyContent: isKeyboardVisible ? 'flex-start' : 'center',
             paddingHorizontal: 24,
-            paddingTop: 12,
-            paddingBottom: 60
+            paddingTop: isKeyboardVisible ? 12 : 24,
+            paddingBottom: isKeyboardVisible ? 60 : 24
           }}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
         >
-          <View className="items-center mb-6 mt-4">
+          <View className="items-center mb-8 mt-2">
             <Image
               source={require('../assets/icon.png')}
-              style={{ width: 68, height: 68, borderRadius: 20 }}
-              className="mb-3 shadow-lg shadow-emerald-500/30"
+              style={{ width: 80, height: 80, borderRadius: 24 }}
+              className="mb-4 shadow-lg shadow-emerald-500/30"
             />
-            <Text className="text-3xl font-extrabold text-white tracking-tight">NGNflow</Text>
-            <Text className="text-neutral-400 mt-1 text-center text-xs font-medium tracking-wide uppercase">Premium Crypto & Fiat</Text>
+            <Text className="text-4xl font-extrabold text-white tracking-tight">NGNflow</Text>
+            <Text className="text-neutral-400 mt-2 text-center text-sm font-medium tracking-wide uppercase">Premium Crypto & Fiat</Text>
           </View>
 
           <View className="bg-neutral-900 p-6 rounded-[2rem] border border-neutral-800 shadow-2xl">
