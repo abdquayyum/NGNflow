@@ -186,18 +186,22 @@ export default function SettingsScreen() {
               <X color="#fff" size={20} />
             </TouchableOpacity>
           </View>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}  className="flex-1">
-          <View className="p-5 flex-1">
-            <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Full Name</Text>
-            <TextInput  value={fullName} onChangeText={setFullName} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="Enter your full name" />
-            <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Email Address (Read Only)</Text>
-            <TextInput  value={user?.email || ''} editable={false} className="bg-neutral-900/50 text-neutral-500 p-4 rounded-2xl border border-neutral-800 mb-6" />
-          </View>
-          <View className="p-5 border-t border-neutral-900 bg-neutral-950">
-            <TouchableOpacity onPress={saveProfile} disabled={loading} className="bg-emerald-500 h-14 rounded-2xl items-center justify-center">
-              {loading ? <ActivityIndicator color="#fff" /> : <Text className="text-white font-bold text-lg">Save Changes</Text>}
-            </TouchableOpacity>
-          </View>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? -25 : 0}
+            className="flex-1"
+          >
+            <ScrollView className="p-5 flex-1" keyboardShouldPersistTaps="handled">
+              <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Full Name</Text>
+              <TextInput value={fullName} onChangeText={setFullName} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="Enter your full name" />
+              <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Email Address (Read Only)</Text>
+              <TextInput value={user?.email || ''} editable={false} className="bg-neutral-900/50 text-neutral-500 p-4 rounded-2xl border border-neutral-800 mb-6" />
+            </ScrollView>
+            <View className="p-5 pb-8 border-t border-neutral-900 bg-neutral-950">
+              <TouchableOpacity onPress={saveProfile} disabled={loading} className="bg-emerald-500 h-14 rounded-2xl items-center justify-center">
+                {loading ? <ActivityIndicator color="#fff" /> : <Text className="text-white font-bold text-lg">Save Changes</Text>}
+              </TouchableOpacity>
+            </View>
           </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
@@ -211,39 +215,42 @@ export default function SettingsScreen() {
               <X color="#fff" size={20} />
             </TouchableOpacity>
           </View>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}  className="flex-1">
-          <ScrollView className="p-5 flex-1" contentContainerStyle={{ paddingBottom: 40 }}>
-            <Text className="text-neutral-400 mb-6 leading-5">To unlock higher transaction limits and virtual cards, please provide your personal identity details.</Text>
-            
-            <DropdownField 
-              label="Title" 
-              value={title} 
-              options={["Mr", "Mrs", "Ms", "Miss", "Dr", "Prof", "Rev"]} 
-              onSelect={setTitle} 
-            />
-            
-            <DropdownField 
-              label="Gender" 
-              value={gender} 
-              options={["Male", "Female"]} 
-              onSelect={setGender} 
-            />
-            
-            
-            <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Legal Full Name (Must match BVN exactly)</Text>
-            <TextInput value={fullName} onChangeText={setFullName} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="First Last" />
-            <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Registered Phone Number</Text>
-            <TextInput value={phone} onChangeText={setPhone} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="080..." keyboardType="phone-pad" />
-            <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Bank Verification Number (BVN)</Text>
-            <TextInput value={bvn} onChangeText={setBvn} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="11-digit BVN" keyboardType="numeric" maxLength={11} />
-            <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Date of Birth (YYYY-MM-DD)</Text>
-            <TextInput  value={dob} onChangeText={setDob} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="1990-01-01" keyboardType="numeric" />
-          </ScrollView>
-          <View className="p-5 border-t border-neutral-900 bg-neutral-950">
-            <TouchableOpacity onPress={saveKYC} disabled={loading} className="bg-emerald-500 h-14 rounded-2xl items-center justify-center">
-              {loading ? <ActivityIndicator color="#fff" /> : <Text className="text-white font-bold text-lg">Submit KYC</Text>}
-            </TouchableOpacity>
-          </View>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? -25 : 0}
+            className="flex-1"
+          >
+            <ScrollView className="p-5 flex-1" contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+              <Text className="text-neutral-400 mb-6 leading-5">To unlock higher transaction limits and virtual cards, please provide your personal identity details.</Text>
+              
+              <DropdownField 
+                label="Title" 
+                value={title} 
+                options={["Mr", "Mrs", "Ms", "Miss", "Dr", "Prof", "Rev"]} 
+                onSelect={setTitle} 
+              />
+              
+              <DropdownField 
+                label="Gender" 
+                value={gender} 
+                options={["Male", "Female"]} 
+                onSelect={setGender} 
+              />
+              
+              <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Legal Full Name (Must match BVN exactly)</Text>
+              <TextInput value={fullName} onChangeText={setFullName} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="First Last" />
+              <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Registered Phone Number</Text>
+              <TextInput value={phone} onChangeText={setPhone} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="080..." keyboardType="phone-pad" />
+              <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Bank Verification Number (BVN)</Text>
+              <TextInput value={bvn} onChangeText={setBvn} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="11-digit BVN" keyboardType="numeric" maxLength={11} />
+              <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Date of Birth (YYYY-MM-DD)</Text>
+              <TextInput value={dob} onChangeText={setDob} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="1990-01-01" keyboardType="numeric" />
+            </ScrollView>
+            <View className="p-5 pb-8 border-t border-neutral-900 bg-neutral-950">
+              <TouchableOpacity onPress={saveKYC} disabled={loading} className="bg-emerald-500 h-14 rounded-2xl items-center justify-center">
+                {loading ? <ActivityIndicator color="#fff" /> : <Text className="text-white font-bold text-lg">Submit KYC</Text>}
+              </TouchableOpacity>
+            </View>
           </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
@@ -257,16 +264,20 @@ export default function SettingsScreen() {
               <X color="#fff" size={20} />
             </TouchableOpacity>
           </View>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}  className="flex-1">
-          <View className="p-5 flex-1">
-            <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">New Password</Text>
-            <TextInput  value={newPassword} onChangeText={setNewPassword} secureTextEntry className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="Enter new password" />
-          </View>
-          <View className="p-5 border-t border-neutral-900 bg-neutral-950">
-            <TouchableOpacity onPress={savePassword} disabled={loading || newPassword.length < 6} className={`h-14 rounded-2xl items-center justify-center ${newPassword.length < 6 ? 'bg-neutral-800' : 'bg-emerald-500'}`}>
-              {loading ? <ActivityIndicator color="#fff" /> : <Text className={`font-bold text-lg ${newPassword.length < 6 ? 'text-neutral-500' : 'text-white'}`}>Update Password</Text>}
-            </TouchableOpacity>
-          </View>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? -25 : 0}
+            className="flex-1"
+          >
+            <ScrollView className="p-5 flex-1" keyboardShouldPersistTaps="handled">
+              <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">New Password</Text>
+              <TextInput value={newPassword} onChangeText={setNewPassword} secureTextEntry className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="Enter new password" />
+            </ScrollView>
+            <View className="p-5 pb-8 border-t border-neutral-900 bg-neutral-950">
+              <TouchableOpacity onPress={savePassword} disabled={loading || newPassword.length < 6} className={`h-14 rounded-2xl items-center justify-center ${newPassword.length < 6 ? 'bg-neutral-800' : 'bg-emerald-500'}`}>
+                {loading ? <ActivityIndicator color="#fff" /> : <Text className={`font-bold text-lg ${newPassword.length < 6 ? 'text-neutral-500' : 'text-white'}`}>Update Password</Text>}
+              </TouchableOpacity>
+            </View>
           </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>

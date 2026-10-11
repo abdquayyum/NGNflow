@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -34,6 +34,7 @@ const USDT_NETWORKS = ['ERC20', 'TRC20', 'Polygon', 'BEP20'];
 
 export default function SwapScreen({ route, navigation }) {
   const [payAmount, setPayAmount] = useState('');
+  const scrollViewRef = useRef(null);
 
 
   const initialSymbol = route.params?.initialAsset || 'USDT';
@@ -125,19 +126,25 @@ export default function SwapScreen({ route, navigation }) {
 
   return (
     <SafeAreaView className="flex-1 bg-black">
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}  style={{ flex: 1 }} className="bg-black">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? -25 : 0}
+        style={{ flex: 1 }}
+        className="bg-black"
+      >
         <ScrollView
+          ref={scrollViewRef}
           contentContainerStyle={{
             flexGrow: 1,
             paddingHorizontal: 20,
-            paddingTop: 24, // Standard padding to clear the immediate top
-            paddingBottom: 40 // Breathing room at the bottom
+            paddingTop: 16,
+            paddingBottom: 60
           }}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
         >
-        <View style={{ flex: 1 }} />
-<Text className="text-2xl font-bold mb-8 text-center text-white">Instant Swap</Text>
+          <Text className="text-2xl font-bold mb-6 text-center text-white">Instant Swap</Text>
 
           { }
           <View className={`bg-neutral-900 p-6 rounded-[2rem] border ${parsedPay > fromBalance ? 'border-red-500/50' : 'border-neutral-800'} mb-2`}>
@@ -147,6 +154,7 @@ export default function SwapScreen({ route, navigation }) {
                 scrollEnabled={false}
                 value={payAmount}
                 onChangeText={setPayAmount}
+                onFocus={() => setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100)}
                 keyboardType="numeric"
                 className="flex-1 text-4xl font-bold text-white h-full"
                 placeholder="0.00"
@@ -195,7 +203,7 @@ export default function SwapScreen({ route, navigation }) {
           { }
           <TouchableOpacity
             onPress={handleSwap} disabled={!isValid || loading}
-            className={`p-4 rounded-xl items-center mt-10 ${!isValid ? 'bg-neutral-900 border border-neutral-800' : 'bg-emerald-500'}`}
+            className={`p-4 rounded-xl items-center mt-8 ${!isValid ? 'bg-neutral-900 border border-neutral-800' : 'bg-emerald-500'}`}
           >
             {loading ? <ActivityIndicator color="#fff" /> :
               <Text className={`font-bold text-lg ${!isValid ? 'text-neutral-600' : 'text-white'}`}>
@@ -203,8 +211,7 @@ export default function SwapScreen({ route, navigation }) {
               </Text>
             }
           </TouchableOpacity>
-        <View style={{ flex: 1 }} />
-      </ScrollView>
+        </ScrollView>
       </KeyboardAvoidingView>
 
       <Modal visible={showSelector.isOpen} transparent animationType="slide">
