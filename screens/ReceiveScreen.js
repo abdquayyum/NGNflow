@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert, SafeAreaView } from 'react-native';
-import { Copy, Globe, ArrowLeft } from 'lucide-react-native';
+import { Copy, Globe, ArrowLeft, AlertTriangle } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import QRCode from 'react-native-qrcode-svg';
 import useStore from '../store/useStore';
@@ -31,6 +31,7 @@ export default function ReceiveScreen({ navigation }) {
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
   
+  const user = useStore(state => state.user);
   const getDepositAddress = useStore(state => state.getDepositAddress);
   const getFiatDepositAccount = useStore(state => state.getFiatDepositAccount);
   
@@ -103,43 +104,61 @@ export default function ReceiveScreen({ navigation }) {
           ))}
         </View>
 
-        <View className="bg-neutral-900 border border-neutral-800 rounded-[2rem] p-8 items-center mt-4 shadow-2xl">
-          <View className="w-56 h-56 bg-white rounded-3xl items-center justify-center mb-8 overflow-hidden">
-             {loading || !address ? (
-               <ActivityIndicator color="#10b981" size="large" />
-             ) : (
-               <QRCode 
-                 value={address}
-                 size={180}
-                 backgroundColor="white"
-                 color="black"
-               />
-             )}
-          </View>
-          
-          <Text className="text-xs font-semibold text-neutral-400 mb-2 uppercase text-center">
-            {currency === 'NGN' ? 'Your Virtual Account' : `Your ${network} Deposit Address`}
-          </Text>
-          
-          {loading ? <ActivityIndicator color="#10b981" /> : (
-            <View className="bg-neutral-950 px-4 py-3 rounded-xl border border-neutral-800 flex-row items-center w-full justify-between">
-              <Text className="text-white font-mono text-xs flex-1 mr-4" numberOfLines={1} ellipsizeMode="middle">
-                {address || 'Fetching address...'}
-              </Text>
-              <TouchableOpacity onPress={copyToClipboard} className="p-2 bg-neutral-800 rounded-lg">
-                <Copy color="#10b981" size={18} />
-              </TouchableOpacity>
+        {currency === 'NGN' && user?.kyc_status !== 'tier1' ? (
+          <View className="bg-amber-500/10 border border-amber-500/40 rounded-[2rem] p-6 items-center mt-4 shadow-xl">
+            <View className="w-14 h-14 bg-amber-500/20 rounded-full items-center justify-center mb-4 border border-amber-500/30">
+              <AlertTriangle color="#f59e0b" size={28} />
             </View>
-          )}
-          
-          {!loading && currency !== 'NGN' && (
-             <View className="flex-row items-center mt-6 bg-red-500/10 p-3 rounded-xl border border-red-500/20">
-               <Text className="text-red-400 text-[10px] text-center font-medium">
-                 Send ONLY {currency} over the {network} network to this address. Sending other assets will result in permanent loss.
-               </Text>
-             </View>
-          )}
-        </View>
+            <Text className="text-amber-400 font-bold text-lg mb-2 text-center">Account Not Created</Text>
+            <Text className="text-amber-200/80 text-xs leading-5 text-center mb-6 px-2">
+              KYC is needed for account creation. You must complete your identity verification before your dedicated Nigerian Naira deposit account can be generated.
+            </Text>
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('Settings', { openModal: 'kyc' })} 
+              className="bg-amber-500 w-full py-4 rounded-xl items-center shadow-lg shadow-amber-500/20 active:scale-95"
+            >
+              <Text className="text-black font-bold text-sm tracking-wide">Complete KYC to Create Account</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View className="bg-neutral-900 border border-neutral-800 rounded-[2rem] p-8 items-center mt-4 shadow-2xl">
+            <View className="w-56 h-56 bg-white rounded-3xl items-center justify-center mb-8 overflow-hidden">
+               {loading || !address ? (
+                 <ActivityIndicator color="#10b981" size="large" />
+               ) : (
+                 <QRCode 
+                   value={address}
+                   size={180}
+                   backgroundColor="white"
+                   color="black"
+                 />
+               )}
+            </View>
+            
+            <Text className="text-xs font-semibold text-neutral-400 mb-2 uppercase text-center">
+              {currency === 'NGN' ? 'Your Virtual Account' : `Your ${network} Deposit Address`}
+            </Text>
+            
+            {loading ? <ActivityIndicator color="#10b981" /> : (
+              <View className="bg-neutral-950 px-4 py-3 rounded-xl border border-neutral-800 flex-row items-center w-full justify-between">
+                <Text className="text-white font-mono text-xs flex-1 mr-4" numberOfLines={1} ellipsizeMode="middle">
+                  {address || 'Fetching address...'}
+                </Text>
+                <TouchableOpacity onPress={copyToClipboard} className="p-2 bg-neutral-800 rounded-lg">
+                  <Copy color="#10b981" size={18} />
+                </TouchableOpacity>
+              </View>
+            )}
+            
+            {!loading && currency !== 'NGN' && (
+               <View className="flex-row items-center mt-6 bg-red-500/10 p-3 rounded-xl border border-red-500/20">
+                 <Text className="text-red-400 text-[10px] text-center font-medium">
+                   Send ONLY {currency} over the {network} network to this address. Sending other assets will result in permanent loss.
+                 </Text>
+               </View>
+            )}
+          </View>
+        )}
         <View className="h-10" />
       </ScrollView>
     </SafeAreaView>

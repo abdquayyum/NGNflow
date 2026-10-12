@@ -36,9 +36,9 @@ const DropdownField = ({ label, value, options, onSelect }) => {
   );
 };
 
-export default function SettingsScreen() {
+export default function SettingsScreen({ route }) {
   const { user, token, logout, fetchUserData } = useStore();
-  const [activeModal, setActiveModal] = useState(null); // 'profile', 'kyc', 'password', 'notifications', 'help'
+  const [activeModal, setActiveModal] = useState(route?.params?.openModal || null); // 'profile', 'kyc', 'password', 'notifications', 'help'
   const [loading, setLoading] = useState(false);
 
   // Profile State
@@ -57,6 +57,20 @@ export default function SettingsScreen() {
   // Notifications State
   const [pushEnabled, setPushEnabled] = useState(true);
   const [emailEnabled, setEmailEnabled] = useState(true);
+
+  React.useEffect(() => {
+    if (route?.params?.openModal) {
+      if (route.params.openModal === 'kyc') {
+        setFullName(user?.full_name || '');
+        setDob(user?.date_of_birth || '');
+        setTitle(user?.title || '');
+        setGender(user?.gender || '');
+        setBvn(user?.bvn || '');
+        setPhone(user?.phone || '');
+      }
+      setActiveModal(route.params.openModal);
+    }
+  }, [route?.params?.openModal, user]);
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to log out?', [
@@ -188,7 +202,7 @@ export default function SettingsScreen() {
           </View>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 75 : 0}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 110 : 0}
             className="flex-1"
           >
             <ScrollView className="p-5 flex-1" keyboardShouldPersistTaps="handled">
@@ -217,7 +231,7 @@ export default function SettingsScreen() {
           </View>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 75 : 0}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 110 : 0}
             className="flex-1"
           >
             <ScrollView className="p-5 flex-1" contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
@@ -266,7 +280,7 @@ export default function SettingsScreen() {
           </View>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 75 : 0}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 110 : 0}
             className="flex-1"
           >
             <ScrollView className="p-5 flex-1" keyboardShouldPersistTaps="handled">

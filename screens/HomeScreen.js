@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, RefreshControl, Image, Alert } from 'react-native';
-import { Bell, EyeOff, Eye, Download, Send, ArrowRightLeft, PlusCircle, ChevronRight } from 'lucide-react-native';
+import { View, Text, TouchableOpacity, ScrollView, RefreshControl, Image, Alert, Modal, SafeAreaView } from 'react-native';
+import { Bell, EyeOff, Eye, Download, Send, ArrowRightLeft, PlusCircle, ChevronRight, AlertTriangle, X, Check } from 'lucide-react-native';
 import useStore from '../store/useStore';
-import { registerForPushNotificationsAsync } from '../utils/pushNotifications';
+import { registerForPushNotificationsAsync, setupNotificationListeners } from '../utils/pushNotifications';
 
 const ASSETS = [
   { symbol: 'NGN', name: 'Nigerian Naira', isFiat: true, logo: 'https://cdn.countryflags.com/thumbs/nigeria/flag-round-250.png' },
@@ -14,6 +14,27 @@ const ASSETS = [
   { symbol: 'POL', name: 'Polygon', isFiat: false, logo: 'https://cryptologos.cc/logos/polygon-matic-logo.png' }
 ];
 
+const formatTime = (isoString) => {
+  if (!isoString) return '';
+  try {
+    const date = new Date(isoString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  } catch (e) {
+    return '';
+  }
+};
+
 export default function HomeScreen({ navigation }) {
   const balances = useStore(state => state.balances);
   const user = useStore(state => state.user);
@@ -23,8 +44,15 @@ export default function HomeScreen({ navigation }) {
   const marketData = useStore(state => state.marketData);
   const fetchMarketData = useStore(state => state.fetchMarketData);
 
+  const notifications = useStore(state => state.notifications);
+  const unreadNotificationsCount = useStore(state => state.unreadNotificationsCount);
+  const markNotificationAsRead = useStore(state => state.markNotificationAsRead);
+  const markAllNotificationsAsRead = useStore(state => state.markAllNotificationsAsRead);
+  const clearNotifications = useStore(state => state.clearNotifications);
+
   const [showBalance, setShowBalance] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
 
   const formatNGN = (amount) => new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount || 0);
 
@@ -32,22 +60,40 @@ export default function HomeScreen({ navigation }) {
     setRefreshing(true);
     await fetchUserData(token);
     await fetchMarketData();
+    await useStore.getState().loadNotifications();
     setRefreshing(false);
   }, [token]);
 
   React.useEffect(() => {
     fetchMarketData();
-    registerForPushNotificationsAsync().then(token => {
-      if (token && user && user.push_token !== token) {
-        useStore.getState().updatePushToken(token);
+    useStore.getState().loadNotifications();
+
+    registerForPushNotificationsAsync().then(pushToken => {
+      if (pushToken && user && user.push_token !== pushToken) {
+        useStore.getState().updatePushToken(pushToken);
       }
     });
+
+    const cleanup = setupNotificationListeners(notification => {
+      const content = notification.request?.content || {};
+      useStore.getState().addNotification({
+        id: notification.request?.identifier || Date.now().toString(),
+        title: content.title || 'Notification',
+        body: content.body || '',
+        date: new Date(notification.date || Date.now()).toISOString(),
+        read: false,
+        data: content.data || {},
+      });
+    });
+
+    return () => cleanup && cleanup();
   }, [user?.id]);
 
   const totalNgnBalance = (balances.NGN || 0) + ((balances.USDT || 0) * rates.USDT) + ((balances.BTC || 0) * rates.BTC) + ((balances.ETH || 0) * rates.ETH);
   const isZeroBalance = totalNgnBalance === 0;
 
   return (
+    <>
     <ScrollView
       className="flex-1 bg-[#09090B] px-6 py-6 pt-12"
       showsVerticalScrollIndicator={false}
@@ -62,9 +108,16 @@ export default function HomeScreen({ navigation }) {
         </View>
 
         <View className="flex-row items-center space-x-3">
-          <TouchableOpacity onPress={() => Alert.alert('Notifications', 'You have no new notifications right now.')} className="w-11 h-11 rounded-full bg-neutral-900 border border-neutral-800 items-center justify-center relative">
-            <Bell color="#a3a3a3" size={20} />
-            {!isZeroBalance && <View className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-neutral-900" />}
+          <TouchableOpacity 
+            onPress={() => setShowNotificationsModal(true)} 
+            className="w-11 h-11 rounded-full bg-neutral-900 border border-neutral-800 items-center justify-center relative"
+          >
+            <Bell color={unreadNotificationsCount > 0 ? "#10b981" : "#a3a3a3"} size={20} />
+            {unreadNotificationsCount > 0 && (
+              <View className="absolute -top-1 -right-1 bg-emerald-500 min-w-[18px] h-[18px] px-1 rounded-full items-center justify-center border-2 border-neutral-950">
+                <Text className="text-black font-extrabold text-[10px]">{unreadNotificationsCount}</Text>
+              </View>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
@@ -75,11 +128,20 @@ export default function HomeScreen({ navigation }) {
         </View>
       </View>
 
+      {/* Warning Banner: KYC needed for account creation */}
       {user?.kyc_status !== 'tier1' && (
-        <TouchableOpacity onPress={() => navigation.navigate('Settings')} className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-2xl mb-8 flex-row items-center">
+        <TouchableOpacity 
+          onPress={() => navigation.navigate('Settings', { openModal: 'kyc' })} 
+          className="bg-amber-500/10 border border-amber-500/40 p-4 rounded-2xl mb-8 flex-row items-center shadow-lg shadow-amber-500/5 active:scale-[0.99]"
+        >
+          <View className="w-10 h-10 rounded-full bg-amber-500/20 items-center justify-center mr-3.5 border border-amber-500/30">
+            <AlertTriangle color="#f59e0b" size={20} />
+          </View>
           <View className="flex-1">
-            <Text className="text-amber-500 font-bold mb-1 text-sm">Action Required: Verify Identity</Text>
-            <Text className="text-amber-500/80 text-xs leading-5 pr-4">You must complete KYC verification to unlock Naira deposits and withdrawals.</Text>
+            <Text className="text-amber-400 font-bold mb-1 text-sm">Account Not Created</Text>
+            <Text className="text-amber-200/80 text-xs leading-5 pr-2">
+              KYC is needed for account creation. Complete your identity verification to generate your dedicated bank account.
+            </Text>
           </View>
           <ChevronRight color="#f59e0b" size={20} />
         </TouchableOpacity>
@@ -173,5 +235,75 @@ export default function HomeScreen({ navigation }) {
         </View>
       </View>
     </ScrollView>
+
+    {/* Real Notifications Modal */}
+    <Modal visible={showNotificationsModal} animationType="slide" presentationStyle="pageSheet">
+      <SafeAreaView className="flex-1 bg-neutral-950">
+        <View className="flex-row items-center justify-between p-5 border-b border-neutral-900">
+          <View className="flex-row items-center">
+            <View className="w-10 h-10 rounded-full bg-emerald-500/10 items-center justify-center mr-3 border border-emerald-500/20">
+              <Bell color="#10b981" size={20} />
+            </View>
+            <View>
+              <Text className="text-xl font-bold text-white">Notifications</Text>
+              {unreadNotificationsCount > 0 && (
+                <Text className="text-emerald-400 text-xs font-semibold">{unreadNotificationsCount} unread</Text>
+              )}
+            </View>
+          </View>
+
+          <View className="flex-row items-center">
+            {notifications.length > 0 && (
+              <TouchableOpacity onPress={markAllNotificationsAsRead} className="px-3 py-1.5 rounded-xl bg-neutral-900 mr-2 border border-neutral-800">
+                <Text className="text-neutral-300 text-xs font-semibold">Mark all read</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={() => setShowNotificationsModal(false)} className="p-2 bg-neutral-900 rounded-full">
+              <X color="#fff" size={20} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
+          {notifications.length === 0 ? (
+            <View className="items-center justify-center py-28 px-6">
+              <View className="w-20 h-20 bg-neutral-900 rounded-full items-center justify-center mb-6 border border-neutral-800">
+                <Bell color="#525252" size={32} />
+              </View>
+              <Text className="text-white text-lg font-bold mb-2">No Notifications Yet</Text>
+              <Text className="text-neutral-500 text-center text-xs leading-5">
+                Real notifications pushed to your account, such as deposits, swaps, and announcements, will appear here.
+              </Text>
+            </View>
+          ) : (
+            notifications.map((item) => (
+              <TouchableOpacity 
+                key={item.id} 
+                onPress={() => markNotificationAsRead(item.id)}
+                className={`p-4 rounded-2xl mb-3 border ${item.read ? 'bg-neutral-900/60 border-neutral-800/60' : 'bg-neutral-900 border-emerald-500/30'}`}
+              >
+                <View className="flex-row justify-between items-start mb-1.5">
+                  <View className="flex-row items-center flex-1 mr-2">
+                    {!item.read && <View className="w-2 h-2 rounded-full bg-emerald-500 mr-2" />}
+                    <Text className="text-white font-bold text-sm flex-1">{item.title}</Text>
+                  </View>
+                  <Text className="text-neutral-500 text-[10px]">{formatTime(item.date)}</Text>
+                </View>
+                <Text className="text-neutral-300 text-xs leading-5">{item.body}</Text>
+              </TouchableOpacity>
+            ))
+          )}
+        </ScrollView>
+
+        {notifications.length > 0 && (
+          <View className="p-5 border-t border-neutral-900 bg-neutral-950">
+            <TouchableOpacity onPress={clearNotifications} className="py-2.5 items-center">
+              <Text className="text-red-400 font-semibold text-xs">Clear Notification History</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </SafeAreaView>
+    </Modal>
+    </>
   );
 }

@@ -41,3 +41,22 @@ export async function registerForPushNotificationsAsync() {
 
   return token;
 }
+
+export function setupNotificationListeners(onReceive) {
+  const receivedSubscription = Notifications.addNotificationReceivedListener(notification => {
+    if (onReceive) {
+      onReceive(notification);
+    }
+  });
+
+  const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
+    if (onReceive) {
+      onReceive(response.notification);
+    }
+  });
+
+  return () => {
+    receivedSubscription.remove();
+    responseSubscription.remove();
+  };
+}

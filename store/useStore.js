@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Notifications from 'expo-notifications';
 import axios from 'axios';
 
 const API_URL = 'http://156.232.88.218:8001/api/v1';
@@ -13,16 +15,19 @@ const useStore = create((set, get) => ({
   transactions: [],
   cards: [],
   banks: [],
+  notifications: [],
+  unreadNotificationsCount: 0,
   loading: false,
   error: null,
   
   init: async () => {
     try {
+      await get().loadNotifications();
       const token = await SecureStore.getItemAsync('token');
       if (token) {
         set({ token });
         await get().fetchUserData(token);
-      await get().fetchRates();
+        await get().fetchRates();
       }
     } catch (e) { console.error('Init error', e); }
   },
@@ -266,6 +271,83 @@ const useStore = create((set, get) => ({
       return res.data.account_name;
     } catch (error) {
       throw new Error(error.response?.data?.detail || "Could not verify account");
+    }
+  },
+
+  loadNotifications: async () => {
+    try {
+      const stored = await AsyncStorage.getItem('@ngnflow_notifications');
+      let list = stored ? JSON.parse(stored) : [];
+
+      try {
+        const presented = await Notifications.getPresentedNotificationsAsync();
+        if (presented && presented.length > 0) {
+          presented.forEach(item => {
+            const id = item.request.identifier || item.id || Date.now().toString();
+            const exists = list.some(n => n.id === id);
+            if (!exists) {
+              list.unshift({
+                id,
+                title: item.request.content.title || 'Notification',
+                body: item.request.content.body || '',
+                date: new Date(item.date || Date.now()).toISOString(),
+                read: false,
+                data: item.request.content.data || {},
+              });
+            }
+          });
+          await AsyncStorage.setItem('@ngnflow_notifications', JSON.stringify(list));
+        }
+      } catch (err) {
+        console.log('Error checking presented notifications:', err);
+      }
+
+      const unread = list.filter(n => !n.read).length;
+      set({ notifications: list, unreadNotificationsCount: unread });
+    } catch (e) {
+      console.log('Error loading notifications:', e);
+    }
+  },
+
+  addNotification: async (notif) => {
+    try {
+      const current = get().notifications;
+      const updated = [notif, ...current.filter(n => n.id !== notif.id)];
+      const unread = updated.filter(n => !n.read).length;
+      set({ notifications: updated, unreadNotificationsCount: unread });
+      await AsyncStorage.setItem('@ngnflow_notifications', JSON.stringify(updated));
+    } catch (e) {
+      console.log('Error saving notification:', e);
+    }
+  },
+
+  markNotificationAsRead: async (id) => {
+    try {
+      const updated = get().notifications.map(n => n.id === id ? { ...n, read: true } : n);
+      const unread = updated.filter(n => !n.read).length;
+      set({ notifications: updated, unreadNotificationsCount: unread });
+      await AsyncStorage.setItem('@ngnflow_notifications', JSON.stringify(updated));
+    } catch (e) {
+      console.log('Error marking notification as read:', e);
+    }
+  },
+
+  markAllNotificationsAsRead: async () => {
+    try {
+      const updated = get().notifications.map(n => ({ ...n, read: true }));
+      set({ notifications: updated, unreadNotificationsCount: 0 });
+      await AsyncStorage.setItem('@ngnflow_notifications', JSON.stringify(updated));
+    } catch (e) {
+      console.log('Error marking all notifications as read:', e);
+    }
+  },
+
+  clearNotifications: async () => {
+    try {
+      set({ notifications: [], unreadNotificationsCount: 0 });
+      await AsyncStorage.removeItem('@ngnflow_notifications');
+    } catch (e) {
+      console.log('Error clearing notifications:', e);
     }
   },
 }));
