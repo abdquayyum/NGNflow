@@ -79,6 +79,19 @@ export default function SettingsScreen({ route }) {
     ]);
   };
 
+  const handleDobChange = (text) => {
+    const digits = text.replace(/\D/g, '').slice(0, 8);
+    let formatted = '';
+    if (digits.length <= 4) {
+      formatted = digits;
+    } else if (digits.length <= 6) {
+      formatted = `${digits.slice(0, 4)}-${digits.slice(4)}`;
+    } else {
+      formatted = `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6, 8)}`;
+    }
+    setDob(formatted);
+  };
+
   const saveProfile = async () => {
     if (!fullName) return Alert.alert('Error', 'Full name cannot be empty');
     setLoading(true);
@@ -102,6 +115,9 @@ export default function SettingsScreen({ route }) {
     if (formattedPhone.startsWith('234')) formattedPhone = '0' + formattedPhone.slice(3);
     if (formattedPhone.length !== 11) return Alert.alert('Error', 'Phone must be a valid 11-digit Nigerian number (e.g. 080...)');
     
+    const dobRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dobRegex.test(dob)) return Alert.alert('Error', 'Date of birth must be in YYYY-MM-DD format (e.g. 1990-01-01)');
+
     setLoading(true);
     try {
       await axios.post(`${API_URL}/user/kyc`, { 
@@ -258,7 +274,16 @@ export default function SettingsScreen({ route }) {
               <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Bank Verification Number (BVN)</Text>
               <TextInput value={bvn} onChangeText={setBvn} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="11-digit BVN" keyboardType="numeric" maxLength={11} />
               <Text className="text-neutral-400 text-xs font-bold mb-2 uppercase">Date of Birth (YYYY-MM-DD)</Text>
-              <TextInput value={dob} onChangeText={setDob} className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-6" placeholderTextColor="#737373" placeholder="1990-01-01" keyboardType="numeric" />
+              <TextInput 
+                value={dob} 
+                onChangeText={handleDobChange} 
+                className="bg-neutral-900 text-white p-4 rounded-2xl border border-neutral-800 mb-2" 
+                placeholderTextColor="#737373" 
+                placeholder="1990-01-01" 
+                keyboardType="numbers-and-punctuation"
+                maxLength={10} 
+              />
+              <Text className="text-neutral-500 text-[11px] mb-6">Auto-formats as you type (YYYY-MM-DD)</Text>
             </ScrollView>
             <View className="p-5 pb-10 border-t border-neutral-900 bg-neutral-950">
               <TouchableOpacity onPress={saveKYC} disabled={loading} className="bg-emerald-500 h-14 rounded-2xl items-center justify-center">
