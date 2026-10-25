@@ -15,7 +15,9 @@ import {
   Keyboard
 } from 'react-native';
 
-import { ArrowDown, ChevronRight, X } from 'lucide-react-native';
+import { ArrowDown, ChevronRight, X, Copy, Check, Clock } from 'lucide-react-native';
+import * as Clipboard from 'expo-clipboard';
+import QRCode from 'react-native-qrcode-svg';
 import useStore from '../store/useStore';
 
 const ASSETS = [
@@ -24,15 +26,32 @@ const ASSETS = [
   { symbol: 'USDT_BEP20', name: 'Tether (BEP20)', isFiat: false, logo: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
   { symbol: 'USDT_POLYGON', name: 'Tether (Polygon)', isFiat: false, logo: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
   { symbol: 'USDT_ERC20', name: 'Tether (ERC20)', isFiat: false, logo: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
-  { symbol: 'BTC', name: 'Bitcoin', isFiat: false, logo: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png' }
+  { symbol: 'BTC', name: 'Bitcoin', isFiat: false, logo: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png' },
+  { symbol: 'ETH', name: 'Ethereum', isFiat: false, logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png' },
+  { symbol: 'TRX', name: 'Tron', isFiat: false, logo: 'https://cryptologos.cc/logos/tron-trx-logo.png' },
+  { symbol: 'BNB', name: 'Binance Coin', isFiat: false, logo: 'https://cryptologos.cc/logos/bnb-bnb-logo.png' },
+  { symbol: 'POL', name: 'Polygon', isFiat: false, logo: 'https://cryptologos.cc/logos/polygon-matic-logo.png' }
 ];
 
-const USDT_NETWORKS = ['ERC20', 'TRC20', 'Polygon', 'BEP20'];
+const OTC_ASSETS = ['NGN', 'USDT_TRC20', 'USDT_BEP20', 'USDT_POLYGON', 'USDT_ERC20', 'BTC'];
+const ROUTER_ASSETS = ['ETH', 'TRX', 'BNB', 'POL'];
 
 export default function SwapScreen({ route, navigation }) {
   const [payAmount, setPayAmount] = useState('');
+  const [recipientAddress, setRecipientAddress] = useState('');
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const scrollViewRef = useRef(null);
+
+  // Router order modal states
+  const [depositModalVisible, setDepositModalVisible] = useState(false);
+  const [activeDepositOrder, setActiveDepositOrder] = useState(null);
+  const [depositStatus, setDepositStatus] = useState('waiting');
+  const [countdown, setCountdown] = useState(1200); // 20 mins
+  const [copied, setCopied] = useState(false);
+
+  // Router quote states
+  const [routerQuote, setRouterQuote] = useState(null);
+  const [fetchingQuote, setFetchingQuote] = useState(false);
 
   useEffect(() => {
     const showSub = Keyboard.addListener(
@@ -63,11 +82,18 @@ export default function SwapScreen({ route, navigation }) {
   const initialSymbol = rawInitial === 'USDT' ? 'USDT_TRC20' : (rawInitial || 'USDT_TRC20');
   const initialAssetObj = ASSETS.find(a => a.symbol === initialSymbol) || ASSETS[1];
 
+  const [payAsset, setPayAsset] = useState(initialAssetObj);
+  const [receiveAsset, setReceiveAsset] = useState(ASSETS[0]);
+  const [showSelector, setShowSelector] = useState({ isOpen: false, type: 'pay' });
+
+  const balances = useStore(state => state.balances);
+  const liveRates = useStore(state => state.rates);
+  const { swap, sellToNgn, buyCrypto, getRouterQuote, checkRouterStatus, loading } = useStore();
+
   useEffect(() => {
     const getLiveRates = async () => {
       try {
         const axios = require('axios');
-        // Fetch from our own secure backend, which natively caches live market rates
         const res = await axios.get('http://156.232.88.218:8001/api/v1/crypto/rates');
         const backendRates = res.data.rates;
         useStore.setState((state) => ({
@@ -77,18 +103,17 @@ export default function SwapScreen({ route, navigation }) {
           }
         }));
       } catch (err) {
-        console.error("Failed to fetch unified rates from backend:", err);
+        console.error("Failed to fetch unified rates:", err);
       }
     };
     getLiveRates();
   }, []);
 
-  const [payAsset, setPayAsset] = useState(initialAssetObj);
-  const [receiveAsset, setReceiveAsset] = useState(ASSETS[0]);
-  const [receiveNetwork, setReceiveNetwork] = useState('TRC20');
-  const [showSelector, setShowSelector] = useState({ isOpen: false, type: 'pay' });
-
-  const balances = useStore(state => state.balances);
+  // Determine swap category
+  const isInternalOtc = OTC_ASSETS.includes(payAsset.symbol) && OTC_ASSETS.includes(receiveAsset.symbol);
+  const isSellMode = ROUTER_ASSETS.includes(payAsset.symbol) && (receiveAsset.symbol === 'NGN' || receiveAsset.symbol.startsWith('USDT'));
+  const isBuyMode = (payAsset.symbol === 'NGN' || payAsset.symbol.startsWith('USDT')) && ROUTER_ASSETS.includes(receiveAsset.symbol);
+  const isRouterCross = !isInternalOtc && !isSellMode && !isBuyMode;
 
   // Sync selected asset with navigation params dynamically
   React.useEffect(() => {
@@ -97,29 +122,96 @@ export default function SwapScreen({ route, navigation }) {
       const found = ASSETS.find(a => a.symbol === sym);
       if (found) {
         setPayAsset(found);
-      } else {
-        Alert.alert(
-          'Asset Not Available for Swap',
-          `${route.params.initialAsset} is not available for instant swaps. Swapping is exclusively supported for NGN, USDT, and BTC to guarantee instant liquidity and seamless external withdrawals.`
-        );
-        setPayAsset(ASSETS[1]);
       }
     }
   }, [route.params?.initialAsset]);
 
-  const liveRates = useStore(state => state.rates);
-  const { swap, loading, error, clearError } = useStore();
-
   const fromBalance = balances[payAsset.symbol] || 0;
   const parsedPay = parseFloat(payAmount || 0);
 
+  // Fetch live router quote when non-OTC swap is selected
+  useEffect(() => {
+    let active = true;
+    if (!isInternalOtc && parsedPay > 0) {
+      setFetchingQuote(true);
+      const timer = setTimeout(async () => {
+        const q = await getRouterQuote(payAsset.symbol, receiveAsset.symbol, parsedPay);
+        if (active) {
+          setRouterQuote(q);
+          setFetchingQuote(false);
+        }
+      }, 400);
+      return () => {
+        active = false;
+        clearTimeout(timer);
+      };
+    } else {
+      setRouterQuote(null);
+      setFetchingQuote(false);
+    }
+  }, [payAsset.symbol, receiveAsset.symbol, payAmount, isInternalOtc]);
+
+  // Rate calculations
   const payRate = liveRates[payAsset.symbol] || (payAsset.symbol === 'NGN' ? 1 : 1650);
   const receiveRate = liveRates[receiveAsset.symbol] || (receiveAsset.symbol === 'NGN' ? 1 : 1650);
 
-  // Accounting for the 1% platform swap fee
-  const grossAmount = parsedPay * (payRate / receiveRate);
-  const receiveAmount = grossAmount > 0 ? grossAmount * 0.99 : 0;
-  const isValid = parsedPay > 0 && parsedPay <= fromBalance && payAsset.symbol !== receiveAsset.symbol;
+  let receiveAmount = 0;
+  if (isInternalOtc) {
+    const grossAmount = parsedPay * (payRate / receiveRate);
+    receiveAmount = grossAmount > 0 ? grossAmount * 0.99 : 0;
+  } else if (routerQuote && routerQuote.estimated_receive) {
+    receiveAmount = routerQuote.estimated_receive;
+  } else {
+    const grossAmount = parsedPay * (payRate / receiveRate);
+    receiveAmount = grossAmount > 0 ? grossAmount * 0.99 : 0;
+  }
+
+  // Validity checks
+  const isBalanceSufficient = isSellMode ? true : parsedPay <= fromBalance;
+  const isPairDifferent = payAsset.symbol !== receiveAsset.symbol;
+  const isAddressValid = isBuyMode ? (
+    receiveAsset.symbol === 'TRX' ? recipientAddress.trim().startsWith('T') && recipientAddress.trim().length === 34 :
+    recipientAddress.trim().startsWith('0x') && recipientAddress.trim().length === 42
+  ) : true;
+
+  const isValid = parsedPay > 0 && isBalanceSufficient && isPairDifferent && isAddressValid;
+
+  // Countdown and status polling timer for active deposit order
+  useEffect(() => {
+    let interval = null;
+    let pollInterval = null;
+
+    if (depositModalVisible && activeDepositOrder) {
+      setCountdown(1200);
+      interval = setInterval(() => {
+        setCountdown(prev => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+
+      pollInterval = setInterval(async () => {
+        const st = await checkRouterStatus(activeDepositOrder.reference_id);
+        if (st?.status) {
+          setDepositStatus(st.status);
+          if (st.status === 'finished') {
+            clearInterval(pollInterval);
+            Alert.alert(
+              'Deposit Confirmed 🎉',
+              `Your on-chain deposit has been confirmed! ₦${(activeDepositOrder.expected_ngn || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })} has been credited to your Naira wallet balance.`
+            );
+            setTimeout(() => {
+              setDepositModalVisible(false);
+              setActiveDepositOrder(null);
+              setPayAmount('');
+            }, 2500);
+          }
+        }
+      }, 4000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+      if (pollInterval) clearInterval(pollInterval);
+    };
+  }, [depositModalVisible, activeDepositOrder]);
 
   const handleSwap = async () => {
     if (!isValid || loading) return;
@@ -129,23 +221,73 @@ export default function SwapScreen({ route, navigation }) {
       return;
     }
 
-    const res = await swap(payAsset.symbol, receiveAsset.symbol, parsedPay);
-    if (res?.success) {
-      Alert.alert(
-        'Swap Successful 🎉',
-        `Successfully swapped ${parsedPay} ${payAsset.symbol} to ${receiveAmount.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${receiveAsset.symbol}. Your wallet balance has been updated.`
-      );
-      setPayAmount('');
-    } else {
-      const err = res?.error || 'Swap could not be completed. Please try again.';
-      Alert.alert('Swap Failed', err);
+    // 1. Internal OTC Swap
+    if (isInternalOtc) {
+      const res = await swap(payAsset.symbol, receiveAsset.symbol, parsedPay);
+      if (res?.success) {
+        Alert.alert(
+          'Swap Successful 🎉',
+          `Successfully swapped ${parsedPay} ${payAsset.symbol} to ${receiveAmount.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${receiveAsset.symbol}. Your wallet balance has been updated.`
+        );
+        setPayAmount('');
+      } else {
+        const err = res?.error || 'Swap could not be completed. Please try again.';
+        Alert.alert('Swap Failed', err);
+      }
+      return;
     }
+
+    // 2. Sell Crypto for Naira / USDT (Deposit & Convert)
+    if (isSellMode) {
+      const res = await sellToNgn(payAsset.symbol, parsedPay);
+      if (res?.success) {
+        setActiveDepositOrder(res.data);
+        setDepositStatus('waiting');
+        setDepositModalVisible(true);
+      } else {
+        const err = res?.error || 'Could not initiate swap. Please try again.';
+        Alert.alert('Order Failed', err);
+      }
+      return;
+    }
+
+    // 3. Buy Crypto & Direct On-Chain Withdrawal
+    if (isBuyMode) {
+      if (!recipientAddress.trim()) {
+        Alert.alert('Missing Address', `Please enter your destination ${receiveAsset.symbol} wallet address.`);
+        return;
+      }
+
+      const res = await buyCrypto(payAsset.symbol, receiveAsset.symbol, parsedPay, recipientAddress.trim());
+      if (res?.success) {
+        Alert.alert(
+          'On-Chain Swap Broadcasted 🚀',
+          `Successfully initiated blockchain transfer of ${receiveAmount.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${receiveAsset.symbol} to ${recipientAddress.slice(0, 6)}...${recipientAddress.slice(-4)}. The coins will land directly in your external wallet as soon as confirmed on the network.`
+        );
+        setPayAmount('');
+        setRecipientAddress('');
+      } else {
+        const err = res?.error || 'Transfer could not be processed.';
+        Alert.alert('Transfer Failed', err);
+      }
+      return;
+    }
+
+    // 4. Other cross-currency router swaps
+    Alert.alert('Notice', 'Cross-currency swaps to external assets are processed directly via on-chain withdrawal.');
+  };
+
+  const copyToClipboard = async (text) => {
+    await Clipboard.setStringAsync(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const toggleDirection = () => {
     setPayAsset(receiveAsset);
     setReceiveAsset(payAsset);
     setPayAmount('');
+    setRecipientAddress('');
   };
 
   const openSelector = (type) => setShowSelector({ isOpen: true, type });
@@ -159,6 +301,12 @@ export default function SwapScreen({ route, navigation }) {
       else setReceiveAsset(asset);
     }
     setShowSelector({ isOpen: false, type: 'pay' });
+  };
+
+  const formatCountdown = (secs) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -176,16 +324,22 @@ export default function SwapScreen({ route, navigation }) {
             justifyContent: isKeyboardVisible ? 'flex-start' : 'center',
             paddingHorizontal: 20,
             paddingTop: isKeyboardVisible ? 12 : 20,
-            paddingBottom: isKeyboardVisible ? 60 : 20
+            paddingBottom: isKeyboardVisible ? 80 : 30
           }}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
         >
-          <Text className="text-2xl font-bold mb-6 text-center text-white">Instant Swap</Text>
+          <Text className="text-2xl font-bold mb-2 text-center text-white">Instant Swap & Convert</Text>
+          <Text className="text-xs text-neutral-400 mb-6 text-center">
+            {isInternalOtc ? 'Instant OTC Swap • 100% Backed Liquidity' :
+             isSellMode ? 'Convert External Crypto ➔ Naira Bank Balance' :
+             isBuyMode ? 'Buy Crypto with Naira ➔ Direct On-Chain Delivery' :
+             'On-Chain Multi-Network Router'}
+          </Text>
 
-          { }
-          <View className={`bg-neutral-900 p-6 rounded-[2rem] border ${parsedPay > fromBalance ? 'border-red-500/50' : 'border-neutral-800'} mb-2`}>
+          {/* YOU PAY CARD */}
+          <View className={`bg-neutral-900 p-6 rounded-[2rem] border ${(!isSellMode && parsedPay > fromBalance) ? 'border-red-500/50' : 'border-neutral-800'} mb-2`}>
             <Text className="text-xs text-neutral-400 font-medium uppercase mb-3">You Pay</Text>
             <View className="flex-row justify-between items-center h-16">
               <TextInput
@@ -206,29 +360,37 @@ export default function SwapScreen({ route, navigation }) {
               </TouchableOpacity>
             </View>
             <View className="flex-row justify-between items-center mt-2">
-              <Text className={`text-xs ${parsedPay > fromBalance ? 'text-red-400' : 'text-neutral-500'}`}>
-                Balance: {fromBalance.toLocaleString()} {payAsset.symbol}
+              <Text className={`text-xs ${(!isSellMode && parsedPay > fromBalance) ? 'text-red-400' : 'text-neutral-500'}`}>
+                {isSellMode ? 'Send from any external wallet' : `Balance: ${fromBalance.toLocaleString()} ${payAsset.symbol}`}
               </Text>
-              <TouchableOpacity onPress={() => setPayAmount(fromBalance.toString())}>
-                <Text className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded">MAX</Text>
-              </TouchableOpacity>
+              {!isSellMode && (
+                <TouchableOpacity onPress={() => setPayAmount(fromBalance.toString())}>
+                  <Text className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded">MAX</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
 
-          { }
+          {/* SWAP DIRECTION BUTTON */}
           <View className="z-10 items-center -my-4">
             <TouchableOpacity onPress={toggleDirection} className="w-14 h-14 bg-emerald-600 rounded-full items-center justify-center border-4 border-black shadow-xl">
               <ArrowDown color="#fff" size={24} />
             </TouchableOpacity>
           </View>
 
-          { }
+          {/* YOU RECEIVE CARD */}
           <View className="bg-neutral-900 p-6 rounded-[2rem] border border-neutral-800 mt-2">
             <Text className="text-xs text-neutral-400 font-medium uppercase mb-3">You Receive</Text>
             <View className="flex-row justify-between items-center h-16">
-              <Text className="flex-1 text-4xl font-bold text-emerald-400 h-full" style={{ includeFontPadding: false, paddingVertical: 0, textAlignVertical: 'center' }} numberOfLines={1}>
-                {receiveAmount ? receiveAmount.toLocaleString(undefined, { maximumFractionDigits: 6 }) : '0.00'}
-              </Text>
+              {fetchingQuote ? (
+                <View className="flex-1 justify-center">
+                  <ActivityIndicator color="#10b981" />
+                </View>
+              ) : (
+                <Text className="flex-1 text-4xl font-bold text-emerald-400 h-full" style={{ includeFontPadding: false, paddingVertical: 0, textAlignVertical: 'center' }} numberOfLines={1}>
+                  {receiveAmount ? receiveAmount.toLocaleString(undefined, { maximumFractionDigits: 6 }) : '0.00'}
+                </Text>
+              )}
               <TouchableOpacity onPress={() => openSelector('receive')} className="flex-row items-center bg-neutral-950 px-3 py-2 rounded-full border border-neutral-800 ml-4">
                 <Image source={{ uri: receiveAsset.logo }} className="w-5 h-5 rounded-full mr-2 bg-white" />
                 <Text className="text-white font-semibold text-sm mr-2">{receiveAsset.symbol}</Text>
@@ -236,27 +398,59 @@ export default function SwapScreen({ route, navigation }) {
               </TouchableOpacity>
             </View>
             <View className="flex-row justify-between items-center mt-4">
-              <Text className="text-xs text-neutral-500">Rate: 1 {payAsset.symbol} ≈ {((payRate / receiveRate) * 0.99).toLocaleString(undefined, { maximumFractionDigits: 6 })} {receiveAsset.symbol}</Text>
+              <Text className="text-xs text-neutral-500">
+                Rate: 1 {payAsset.symbol} ≈ {parsedPay > 0 && receiveAmount > 0 ? (receiveAmount / parsedPay).toLocaleString(undefined, { maximumFractionDigits: 6 }) : ((payRate / receiveRate) * 0.99).toLocaleString(undefined, { maximumFractionDigits: 6 })} {receiveAsset.symbol}
+              </Text>
               <View className="bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
                 <Text className="text-[10px] text-emerald-400 font-semibold">1% Fee Included</Text>
               </View>
             </View>
           </View>
 
-          { }
+          {/* RECIPIENT WALLET ADDRESS INPUT FOR ON-CHAIN BUY */}
+          {isBuyMode && (
+            <View className="bg-neutral-900 p-5 rounded-[2rem] border border-neutral-800 mt-4">
+              <Text className="text-xs text-neutral-400 font-medium uppercase mb-2">
+                Recipient {receiveAsset.symbol} Address
+              </Text>
+              <TextInput
+                value={recipientAddress}
+                onChangeText={setRecipientAddress}
+                placeholder={
+                  receiveAsset.symbol === 'TRX' ? 'Enter TRON address (starts with T)' : 'Enter wallet address (0x...)'
+                }
+                placeholderTextColor="#525252"
+                className="text-white text-sm font-medium py-2 border-b border-neutral-800"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <Text className="text-[11px] text-neutral-500 mt-2">
+                Funds will be broadcasted directly to this address on the blockchain and will be 100% withdrawable in your external wallet.
+              </Text>
+            </View>
+          )}
+
+          {/* CONFIRM BUTTON */}
           <TouchableOpacity
-            onPress={handleSwap} disabled={!isValid || loading}
+            onPress={handleSwap}
+            disabled={!isValid || loading}
             className={`p-4 rounded-xl items-center mt-8 ${!isValid ? 'bg-neutral-900 border border-neutral-800' : 'bg-emerald-500'}`}
           >
-            {loading ? <ActivityIndicator color="#fff" /> :
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
               <Text className={`font-bold text-lg ${!isValid ? 'text-neutral-600' : 'text-white'}`}>
-                {parsedPay > fromBalance ? 'Insufficient Balance' : 'Confirm Swap'}
+                {!isSellMode && parsedPay > fromBalance ? 'Insufficient Balance' :
+                 isSellMode ? 'Generate Deposit Address & Lock Rate' :
+                 isBuyMode ? 'Confirm & Send to On-Chain Wallet' :
+                 'Confirm Swap'}
               </Text>
-            }
+            )}
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
 
+      {/* ASSET SELECTOR MODAL */}
       <Modal visible={showSelector.isOpen} transparent animationType="slide">
         <View className="flex-1 justify-end bg-black/60">
           <View className="bg-neutral-900 rounded-t-[2rem] h-2/3 p-6">
@@ -269,7 +463,8 @@ export default function SwapScreen({ route, navigation }) {
             <ScrollView className="flex-1">
               {ASSETS.map(asset => (
                 <TouchableOpacity
-                  key={asset.symbol} onPress={() => selectAsset(asset)}
+                  key={asset.symbol}
+                  onPress={() => selectAsset(asset)}
                   className="flex-row justify-between items-center p-4 rounded-2xl mb-2 bg-neutral-950 border border-neutral-800/50"
                 >
                   <View className="flex-row items-center">
@@ -279,10 +474,94 @@ export default function SwapScreen({ route, navigation }) {
                       <Text className="text-neutral-500 text-xs">{asset.symbol}</Text>
                     </View>
                   </View>
-                  <Text className="text-white font-semibold">{(balances[asset.symbol] || 0).toLocaleString(undefined, { maximumFractionDigits: 4 })}</Text>
+                  <Text className="text-white font-semibold">
+                    {(balances[asset.symbol] || 0).toLocaleString(undefined, { maximumFractionDigits: 4 })}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* DEPOSIT / SELL MODAL WITH QR CODE */}
+      <Modal visible={depositModalVisible} transparent animationType="slide">
+        <View className="flex-1 justify-end bg-black/80">
+          <View className="bg-neutral-900 rounded-t-[2.5rem] p-6 max-h-[85%]">
+            <View className="flex-row justify-between items-center mb-4">
+              <View>
+                <Text className="text-lg font-bold text-white">Send {payAsset.symbol}</Text>
+                <Text className="text-xs text-neutral-400">Lock Rate & Convert to Naira</Text>
+              </View>
+              <TouchableOpacity onPress={() => setDepositModalVisible(false)} className="p-2 bg-neutral-800 rounded-full">
+                <X color="#9ca3af" size={18} />
+              </TouchableOpacity>
+            </View>
+
+            {activeDepositOrder && (
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {/* QR Code Container */}
+                <View className="bg-white p-5 rounded-3xl items-center self-center my-3 shadow-xl">
+                  <QRCode
+                    value={activeDepositOrder.payin_address || ''}
+                    size={170}
+                    color="#000"
+                    backgroundColor="#fff"
+                  />
+                </View>
+
+                {/* Amount to send */}
+                <View className="bg-neutral-950 p-4 rounded-2xl border border-neutral-800 my-2 items-center">
+                  <Text className="text-xs text-neutral-400">Exact Deposit Amount</Text>
+                  <Text className="text-xl font-bold text-emerald-400 mt-1">
+                    {activeDepositOrder.amount} {payAsset.symbol}
+                  </Text>
+                  <Text className="text-xs text-neutral-500 mt-1">
+                    Credited Amount: ₦{(activeDepositOrder.expected_ngn || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  </Text>
+                </View>
+
+                {/* Copyable Address */}
+                <View className="bg-neutral-950 p-4 rounded-2xl border border-neutral-800 my-2">
+                  <Text className="text-xs text-neutral-400 mb-1">One-Time Deposit Address</Text>
+                  <Text className="text-white text-xs font-mono mb-3" numberOfLines={2}>
+                    {activeDepositOrder.payin_address}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => copyToClipboard(activeDepositOrder.payin_address)}
+                    className="flex-row items-center justify-center bg-emerald-600/20 py-2.5 rounded-xl border border-emerald-500/30"
+                  >
+                    {copied ? <Check color="#34d399" size={16} /> : <Copy color="#34d399" size={16} />}
+                    <Text className="text-emerald-400 text-xs font-semibold ml-2">
+                      {copied ? 'Address Copied!' : 'Copy Deposit Address'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Live Status and Timer */}
+                <View className="flex-row justify-between items-center bg-neutral-950 p-4 rounded-2xl border border-neutral-800 my-2">
+                  <View className="flex-row items-center">
+                    <View className={`w-3 h-3 rounded-full mr-2.5 ${depositStatus === 'finished' ? 'bg-emerald-500' : 'bg-amber-400 animate-pulse'}`} />
+                    <Text className="text-white text-xs font-semibold">
+                      {depositStatus === 'waiting' ? 'Waiting for on-chain deposit...' :
+                       depositStatus === 'confirming' ? 'Deposit detected! Confirming...' :
+                       depositStatus === 'exchanging' ? 'Converting to settlement...' :
+                       depositStatus === 'sending' ? 'Crediting Naira balance...' :
+                       depositStatus === 'finished' ? 'Deposit Completed!' :
+                       'Processing deposit...'}
+                    </Text>
+                  </View>
+                  <View className="flex-row items-center">
+                    <Clock color="#737373" size={13} />
+                    <Text className="text-neutral-400 text-xs font-mono ml-1.5">{formatCountdown(countdown)}</Text>
+                  </View>
+                </View>
+
+                <Text className="text-[11px] text-neutral-500 text-center my-3">
+                  Send the exact amount from MetaMask, TrustWallet, or Binance. Once confirmed on the blockchain, your Naira balance will update automatically.
+                </Text>
+              </ScrollView>
+            )}
           </View>
         </View>
       </Modal>

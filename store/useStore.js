@@ -117,6 +117,83 @@ const useStore = create((set, get) => ({
     }
   },
 
+  getRouterQuote: async (fromAsset, toAsset, amount) => {
+    try {
+      const res = await axios.get(`${API_URL}/router/quote?from_currency=${fromAsset}&to_currency=${toAsset}&amount=${amount || 0}`);
+      return res.data;
+    } catch (error) {
+      console.error('getRouterQuote error', error);
+      return null;
+    }
+  },
+
+  sellToNgn: async (fromAsset, amount) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await axios.post(`${API_URL}/router/sell-to-ngn`, {
+        from_currency: fromAsset,
+        amount: parseFloat(amount)
+      }, {
+        headers: { Authorization: `Bearer ${get().token}` }
+      });
+      set({ loading: false });
+      return { success: true, data: res.data };
+    } catch (error) {
+      let rawMsg = error.response?.data?.detail || error.message || 'Swap could not be initiated';
+      let sanitized = typeof rawMsg === 'string' ? rawMsg : JSON.stringify(rawMsg);
+      sanitized = sanitized
+        .replace(/changenow/gi, 'liquidity network')
+        .replace(/bitnob/gi, 'banking network')
+        .replace(/flutterwave/gi, 'settlement network')
+        .replace(/tatum/gi, 'network provider')
+        .replace(/coingecko/gi, 'market feed');
+      set({ error: sanitized, loading: false });
+      return { success: false, error: sanitized };
+    }
+  },
+
+  buyCrypto: async (fromAsset, toAsset, amount, recipientAddress) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await axios.post(`${API_URL}/router/buy-crypto`, {
+        from_currency: fromAsset,
+        to_currency: toAsset,
+        amount: parseFloat(amount),
+        recipient_address: recipientAddress
+      }, {
+        headers: { Authorization: `Bearer ${get().token}` }
+      });
+      await get().fetchUserData(get().token);
+      set({ loading: false });
+      return { success: true, data: res.data };
+    } catch (error) {
+      let rawMsg = error.response?.data?.detail || error.message || 'On-chain transfer could not be completed';
+      let sanitized = typeof rawMsg === 'string' ? rawMsg : JSON.stringify(rawMsg);
+      sanitized = sanitized
+        .replace(/changenow/gi, 'liquidity network')
+        .replace(/bitnob/gi, 'banking network')
+        .replace(/flutterwave/gi, 'settlement network')
+        .replace(/tatum/gi, 'network provider')
+        .replace(/coingecko/gi, 'market feed');
+      set({ error: sanitized, loading: false });
+      return { success: false, error: sanitized };
+    }
+  },
+
+  checkRouterStatus: async (refId) => {
+    try {
+      const res = await axios.get(`${API_URL}/router/status/${refId}`, {
+        headers: { Authorization: `Bearer ${get().token}` }
+      });
+      if (res.data?.status === 'finished') {
+        await get().fetchUserData(get().token);
+      }
+      return res.data;
+    } catch (error) {
+      return { status: 'unknown' };
+    }
+  },
+
   fetchCards: async () => {
     try {
       const res = await axios.get(`${API_URL}/cards/my-cards`, {
