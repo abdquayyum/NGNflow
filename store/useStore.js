@@ -97,15 +97,23 @@ const useStore = create((set, get) => ({
       const isFiat = fromAsset === 'NGN' || toAsset === 'NGN';
       const endpoint = isFiat ? `${API_URL}/fiat/swap` : `${API_URL}/crypto/swap`;
       
-      await axios.post(`${endpoint}?from_currency=${fromAsset}&to_currency=${toAsset}&amount=${amount}`, {}, {
+      const res = await axios.post(`${endpoint}?from_currency=${fromAsset}&to_currency=${toAsset}&amount=${amount}`, {}, {
         headers: { Authorization: `Bearer ${get().token}` }
       });
       await get().fetchUserData(get().token);
       set({ loading: false });
-      return true;
+      return { success: true, data: res.data };
     } catch (error) {
-      set({ error: error.response?.data?.detail || error.message, loading: false });
-      return false;
+      let rawMsg = error.response?.data?.detail || error.message || 'Swap could not be processed';
+      let sanitized = typeof rawMsg === 'string' ? rawMsg : JSON.stringify(rawMsg);
+      sanitized = sanitized
+        .replace(/changenow/gi, 'liquidity network')
+        .replace(/bitnob/gi, 'banking network')
+        .replace(/flutterwave/gi, 'settlement network')
+        .replace(/tatum/gi, 'network provider')
+        .replace(/coingecko/gi, 'market feed');
+      set({ error: sanitized, loading: false });
+      return { success: false, error: sanitized };
     }
   },
 

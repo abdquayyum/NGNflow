@@ -109,25 +109,32 @@ export default function SwapScreen({ route, navigation }) {
   const fromBalance = balances[payAsset.symbol] || 0;
   const parsedPay = parseFloat(payAmount || 0);
 
-  const payRate = liveRates[payAsset.symbol] || payAsset.rate;
-  const receiveRate = liveRates[receiveAsset.symbol] || receiveAsset.rate;
+  const payRate = liveRates[payAsset.symbol] || (payAsset.symbol === 'NGN' ? 1 : 1650);
+  const receiveRate = liveRates[receiveAsset.symbol] || (receiveAsset.symbol === 'NGN' ? 1 : 1650);
 
-  const receiveAmount = parsedPay * (payRate / receiveRate);
-  const isValid = parsedPay > 0 && parsedPay <= fromBalance;
-
+  // Accounting for the 1% platform swap fee
+  const grossAmount = parsedPay * (payRate / receiveRate);
+  const receiveAmount = grossAmount > 0 ? grossAmount * 0.99 : 0;
+  const isValid = parsedPay > 0 && parsedPay <= fromBalance && payAsset.symbol !== receiveAsset.symbol;
 
   const handleSwap = async () => {
-    if (!isValid) return;
+    if (!isValid || loading) return;
 
-    if (payAsset.symbol === 'NGN' && !['USDT', 'BTC', 'USDT_TRC20', 'USDT_ERC20', 'USDT_BEP20', 'USDT_POLYGON'].includes(receiveAsset.symbol)) {
-      Alert.alert('Unsupported Route', 'You can only swap NGN to USDT or BTC directly. To get other cryptocurrencies, swap to USDT or BTC first, then swap to your desired coin.');
+    if (payAsset.symbol === receiveAsset.symbol) {
+      Alert.alert('Invalid Pair', 'Please select two different assets to swap.');
       return;
     }
 
-    await swap(payAsset.symbol, receiveAsset.symbol, parsedPay);
-    if (!error) {
-      Alert.alert('Success', `Swapped ${parsedPay} ${payAsset.symbol} to ${receiveAmount.toFixed(4)} ${receiveAsset.symbol}`);
+    const res = await swap(payAsset.symbol, receiveAsset.symbol, parsedPay);
+    if (res?.success) {
+      Alert.alert(
+        'Swap Successful 🎉',
+        `Successfully swapped ${parsedPay} ${payAsset.symbol} to ${receiveAmount.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${receiveAsset.symbol}. Your wallet balance has been updated.`
+      );
       setPayAmount('');
+    } else {
+      const err = res?.error || 'Swap could not be completed. Please try again.';
+      Alert.alert('Swap Failed', err);
     }
   };
 
@@ -224,7 +231,12 @@ export default function SwapScreen({ route, navigation }) {
                 <ChevronRight color="#525252" size={14} style={{ transform: [{ rotate: '90deg' }] }} />
               </TouchableOpacity>
             </View>
-            <Text className="text-xs text-neutral-500 mt-4">Rate: 1 {payAsset.symbol} ≈ {(payRate / receiveRate).toLocaleString(undefined, { maximumFractionDigits: 4 })} {receiveAsset.symbol}</Text>
+            <View className="flex-row justify-between items-center mt-4">
+              <Text className="text-xs text-neutral-500">Rate: 1 {payAsset.symbol} ≈ {((payRate / receiveRate) * 0.99).toLocaleString(undefined, { maximumFractionDigits: 6 })} {receiveAsset.symbol}</Text>
+              <View className="bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                <Text className="text-[10px] text-emerald-400 font-semibold">1% Fee Included</Text>
+              </View>
+            </View>
           </View>
 
           { }
