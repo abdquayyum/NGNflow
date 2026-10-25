@@ -20,15 +20,11 @@ import useStore from '../store/useStore';
 
 const ASSETS = [
   { symbol: 'NGN', name: 'Nigerian Naira', isFiat: true, logo: 'https://cdn.countryflags.com/thumbs/nigeria/flag-round-250.png' },
-  { symbol: 'USDT_ERC20', name: 'Tether (ERC20)', isFiat: false, logo: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
   { symbol: 'USDT_TRC20', name: 'Tether (TRC20)', isFiat: false, logo: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
   { symbol: 'USDT_BEP20', name: 'Tether (BEP20)', isFiat: false, logo: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
   { symbol: 'USDT_POLYGON', name: 'Tether (Polygon)', isFiat: false, logo: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
-  { symbol: 'BTC', name: 'Bitcoin', isFiat: false, logo: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png' },
-  { symbol: 'ETH', name: 'Ethereum', isFiat: false, logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png' },
-  { symbol: 'TRX', name: 'Tron', isFiat: false, logo: 'https://cryptologos.cc/logos/tron-trx-logo.png' },
-  { symbol: 'BNB', name: 'Binance Coin', isFiat: false, logo: 'https://cryptologos.cc/logos/bnb-bnb-logo.png' },
-  { symbol: 'POL', name: 'Polygon', isFiat: false, logo: 'https://cryptologos.cc/logos/polygon-matic-logo.png' }
+  { symbol: 'USDT_ERC20', name: 'Tether (ERC20)', isFiat: false, logo: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
+  { symbol: 'BTC', name: 'Bitcoin', isFiat: false, logo: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png' }
 ];
 
 const USDT_NETWORKS = ['ERC20', 'TRC20', 'Polygon', 'BEP20'];
@@ -63,14 +59,15 @@ export default function SwapScreen({ route, navigation }) {
     };
   }, []);
 
-  const initialSymbol = route.params?.initialAsset || 'USDT';
+  const rawInitial = route.params?.initialAsset;
+  const initialSymbol = rawInitial === 'USDT' ? 'USDT_TRC20' : (rawInitial || 'USDT_TRC20');
   const initialAssetObj = ASSETS.find(a => a.symbol === initialSymbol) || ASSETS[1];
 
   useEffect(() => {
     const getLiveRates = async () => {
       try {
         const axios = require('axios');
-        // Fetch from our own secure backend, which natively caches CoinGecko and completely bypasses rate-limits
+        // Fetch from our own secure backend, which natively caches live market rates
         const res = await axios.get('http://156.232.88.218:8001/api/v1/crypto/rates');
         const backendRates = res.data.rates;
         useStore.setState((state) => ({
@@ -86,10 +83,9 @@ export default function SwapScreen({ route, navigation }) {
     getLiveRates();
   }, []);
 
-
   const [payAsset, setPayAsset] = useState(initialAssetObj);
   const [receiveAsset, setReceiveAsset] = useState(ASSETS[0]);
-  const [receiveNetwork, setReceiveNetwork] = useState('ERC20');
+  const [receiveNetwork, setReceiveNetwork] = useState('TRC20');
   const [showSelector, setShowSelector] = useState({ isOpen: false, type: 'pay' });
 
   const balances = useStore(state => state.balances);
@@ -97,9 +93,17 @@ export default function SwapScreen({ route, navigation }) {
   // Sync selected asset with navigation params dynamically
   React.useEffect(() => {
     if (route.params?.initialAsset) {
-      const sym = route.params.initialAsset === 'USDT' ? 'USDT_ERC20' : route.params.initialAsset;
+      const sym = route.params.initialAsset === 'USDT' ? 'USDT_TRC20' : route.params.initialAsset;
       const found = ASSETS.find(a => a.symbol === sym);
-      if (found) setPayAsset(found);
+      if (found) {
+        setPayAsset(found);
+      } else {
+        Alert.alert(
+          'Asset Not Available for Swap',
+          `${route.params.initialAsset} is not available for instant swaps. Swapping is exclusively supported for NGN, USDT, and BTC to guarantee instant liquidity and seamless external withdrawals.`
+        );
+        setPayAsset(ASSETS[1]);
+      }
     }
   }, [route.params?.initialAsset]);
 
