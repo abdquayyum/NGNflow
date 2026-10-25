@@ -152,22 +152,25 @@ const useStore = create((set, get) => ({
     }
   },
 
-  buyCrypto: async (fromAsset, toAsset, amount, recipientAddress) => {
+  buyCrypto: async (fromAsset, toAsset, amount, recipientAddress = null) => {
     set({ loading: true, error: null });
     try {
-      const res = await axios.post(`${API_URL}/router/buy-crypto`, {
+      const payload = {
         from_currency: fromAsset,
         to_currency: toAsset,
-        amount: parseFloat(amount),
-        recipient_address: recipientAddress
-      }, {
+        amount: parseFloat(amount)
+      };
+      if (recipientAddress) {
+        payload.recipient_address = recipientAddress;
+      }
+      const res = await axios.post(`${API_URL}/router/buy-crypto`, payload, {
         headers: { Authorization: `Bearer ${get().token}` }
       });
       await get().fetchUserData(get().token);
       set({ loading: false });
       return { success: true, data: res.data };
     } catch (error) {
-      let rawMsg = error.response?.data?.detail || error.message || 'On-chain transfer could not be completed';
+      let rawMsg = error.response?.data?.detail || error.message || 'Swap could not be completed';
       let sanitized = typeof rawMsg === 'string' ? rawMsg : JSON.stringify(rawMsg);
       sanitized = sanitized
         .replace(/changenow/gi, 'liquidity network')

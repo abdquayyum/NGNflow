@@ -38,7 +38,6 @@ const ROUTER_ASSETS = ['ETH', 'TRX', 'BNB', 'POL'];
 
 export default function SwapScreen({ route, navigation }) {
   const [payAmount, setPayAmount] = useState('');
-  const [recipientAddress, setRecipientAddress] = useState('');
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const scrollViewRef = useRef(null);
 
@@ -169,12 +168,7 @@ export default function SwapScreen({ route, navigation }) {
   // Validity checks
   const isBalanceSufficient = isSellMode ? true : parsedPay <= fromBalance;
   const isPairDifferent = payAsset.symbol !== receiveAsset.symbol;
-  const isAddressValid = isBuyMode ? (
-    receiveAsset.symbol === 'TRX' ? recipientAddress.trim().startsWith('T') && recipientAddress.trim().length === 34 :
-    recipientAddress.trim().startsWith('0x') && recipientAddress.trim().length === 42
-  ) : true;
-
-  const isValid = parsedPay > 0 && isBalanceSufficient && isPairDifferent && isAddressValid;
+  const isValid = parsedPay > 0 && isBalanceSufficient && isPairDifferent;
 
   // Countdown and status polling timer for active deposit order
   useEffect(() => {
@@ -251,24 +245,18 @@ export default function SwapScreen({ route, navigation }) {
       return;
     }
 
-    // 3. Buy Crypto & Direct On-Chain Withdrawal
+    // 3. Buy Crypto (Automatically routes to user's on-chain wallet address)
     if (isBuyMode) {
-      if (!recipientAddress.trim()) {
-        Alert.alert('Missing Address', `Please enter your destination ${receiveAsset.symbol} wallet address.`);
-        return;
-      }
-
-      const res = await buyCrypto(payAsset.symbol, receiveAsset.symbol, parsedPay, recipientAddress.trim());
+      const res = await buyCrypto(payAsset.symbol, receiveAsset.symbol, parsedPay);
       if (res?.success) {
         Alert.alert(
-          'On-Chain Swap Broadcasted 🚀',
-          `Successfully initiated blockchain transfer of ${receiveAmount.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${receiveAsset.symbol} to ${recipientAddress.slice(0, 6)}...${recipientAddress.slice(-4)}. The coins will land directly in your external wallet as soon as confirmed on the network.`
+          'Swap Successful 🎉',
+          `Successfully swapped ${parsedPay} ${payAsset.symbol} to ${receiveAmount.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${receiveAsset.symbol}. Your wallet balance has been updated and coins have been deposited to your ${receiveAsset.symbol} wallet.`
         );
         setPayAmount('');
-        setRecipientAddress('');
       } else {
-        const err = res?.error || 'Transfer could not be processed.';
-        Alert.alert('Transfer Failed', err);
+        const err = res?.error || 'Swap could not be completed.';
+        Alert.alert('Swap Failed', err);
       }
       return;
     }
@@ -287,7 +275,6 @@ export default function SwapScreen({ route, navigation }) {
     setPayAsset(receiveAsset);
     setReceiveAsset(payAsset);
     setPayAmount('');
-    setRecipientAddress('');
   };
 
   const openSelector = (type) => setShowSelector({ isOpen: true, type });
@@ -334,7 +321,7 @@ export default function SwapScreen({ route, navigation }) {
           <Text className="text-xs text-neutral-400 mb-6 text-center">
             {isInternalOtc ? 'Instant OTC Swap • 100% Backed Liquidity' :
              isSellMode ? 'Convert External Crypto ➔ Naira Bank Balance' :
-             isBuyMode ? 'Buy Crypto with Naira ➔ Direct On-Chain Delivery' :
+             isBuyMode ? 'Convert to Real Crypto in Your App Wallet' :
              'On-Chain Multi-Network Router'}
           </Text>
 
@@ -407,29 +394,6 @@ export default function SwapScreen({ route, navigation }) {
             </View>
           </View>
 
-          {/* RECIPIENT WALLET ADDRESS INPUT FOR ON-CHAIN BUY */}
-          {isBuyMode && (
-            <View className="bg-neutral-900 p-5 rounded-[2rem] border border-neutral-800 mt-4">
-              <Text className="text-xs text-neutral-400 font-medium uppercase mb-2">
-                Recipient {receiveAsset.symbol} Address
-              </Text>
-              <TextInput
-                value={recipientAddress}
-                onChangeText={setRecipientAddress}
-                placeholder={
-                  receiveAsset.symbol === 'TRX' ? 'Enter TRON address (starts with T)' : 'Enter wallet address (0x...)'
-                }
-                placeholderTextColor="#525252"
-                className="text-white text-sm font-medium py-2 border-b border-neutral-800"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              <Text className="text-[11px] text-neutral-500 mt-2">
-                Funds will be broadcasted directly to this address on the blockchain and will be 100% withdrawable in your external wallet.
-              </Text>
-            </View>
-          )}
-
           {/* CONFIRM BUTTON */}
           <TouchableOpacity
             onPress={handleSwap}
@@ -442,7 +406,6 @@ export default function SwapScreen({ route, navigation }) {
               <Text className={`font-bold text-lg ${!isValid ? 'text-neutral-600' : 'text-white'}`}>
                 {!isSellMode && parsedPay > fromBalance ? 'Insufficient Balance' :
                  isSellMode ? 'Generate Deposit Address & Lock Rate' :
-                 isBuyMode ? 'Confirm & Send to On-Chain Wallet' :
                  'Confirm Swap'}
               </Text>
             )}
